@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.1)];
+  }
+  .glass-card-premium {
+    @apply bg-[rgba(255,255,255,0.03)] backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-[16px] shadow-[0_8px_32px_rgba(0,0,0,0.2)];
+  }
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #0B0F1A;
+  color: #f8fafc;
+}
