@@ -1,7 +1,8 @@
 # 🚀 GigShield AI
 
 **AI-Powered Parametric Income Protection for Gig Delivery Workers**
-
+**Watch our Phase 1 Pitch & Demo Video Here  https://youtu.be/WuMDSCI0Moc**
+---
 ---
 
 ## 🌟 Vision
