@@ -1,5 +1,5 @@
 // ===== GigShield AI — Frontend Utilities =====
-const API_BASE = '';
+const API_BASE = 'https://gigshield-ai-44yj.onrender.com';
 
 // Auth helpers
 function getToken() { return localStorage.getItem('gs_token'); }
