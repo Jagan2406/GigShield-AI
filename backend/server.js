@@ -1724,7 +1724,8 @@ cron.schedule('0 * * * *', async () => {
 const pages = ['index', 'register', 'login', 'dashboard', 'buy-policy', 'active-policy', 'trigger-monitor', 'claims', 'activity', 'location-tracker', 'terms', 'admin'];
 pages.forEach(page => {
     const route = page === 'index' ? '/' : `/${page}`;
-    app.get(route, (req, res) => res.sendFile(path.join(__dirname, 'public', `${page}.html`)));
+    // Path: backend/server.js -> ../frontend/filename.html
+    app.get(route, (req, res) => res.sendFile(path.join(__dirname, '../frontend', `${page}.html`)));
 });
 
 
