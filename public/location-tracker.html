@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Tracker — GigShield AI</title>
+    <meta name="description" content="Real-time GPS location tracking for gig workers. Monitor activity, verify zones, and ensure fraud prevention.">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        #live-map { width:100%; height:420px; border-radius:0 0 var(--radius) var(--radius); z-index:1; }
+        .tracking-controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+        .btn-track {
+            padding:14px 32px; border-radius:50px; font-size:1rem; font-weight:700; border:none; cursor:pointer;
+            display:inline-flex; align-items:center; gap:10px; font-family:'Poppins',sans-serif;
+            position:relative; overflow:hidden; transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        .btn-track::before { content:''; position:absolute; top:50%; left:50%; width:0; height:0; background:rgba(255,255,255,0.15); border-radius:50%; transform:translate(-50%,-50%); transition:width 0.6s,height 0.6s; }
+        .btn-track:hover::before { width:300px; height:300px; }
+        .btn-track:disabled { opacity:0.5; cursor:not-allowed; transform:none!important; box-shadow:none!important; }
+        .btn-start { background:linear-gradient(135deg,#22C55E,#16a34a); color:white; box-shadow:0 4px 18px rgba(34,197,94,0.35); }
+        .btn-start:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(34,197,94,0.45); }
+        .btn-stop { background:linear-gradient(135deg,#EF4444,#dc2626); color:white; box-shadow:0 4px 18px rgba(239,68,68,0.35); }
+        .btn-stop:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(239,68,68,0.45); }
+
+        .live-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:30px; font-size:0.82rem; font-weight:600; }
+        .live-badge.on { background:rgba(34,197,94,0.12); color:#16a34a; border:1.5px solid rgba(34,197,94,0.3); }
+        .live-badge.off { background:rgba(107,114,128,0.1); color:#6B7280; border:1.5px solid rgba(107,114,128,0.2); }
+        .pulse-dot { width:10px; height:10px; border-radius:50%; position:relative; }
+        .pulse-dot.green { background:#22C55E; }
+        .pulse-dot.green::after { content:''; position:absolute; inset:-3px; border-radius:50%; background:rgba(34,197,94,0.3); animation:pulse 1.5s ease-in-out infinite; }
+        .pulse-dot.gray { background:#9CA3AF; }
+        @keyframes pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.8);opacity:0;} }
+
+        .stats-ticker { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-top:1rem; }
+        .tick { background:var(--bg-light); border-radius:var(--radius-sm); padding:14px; text-align:center; border:1px solid var(--border-light); transition:all 0.3s; }
+        .tick:hover { border-color:var(--primary); background:var(--primary-glow); }
+        .tick .val { font-size:1.4rem; font-weight:700; color:var(--text-dark); }
+        .tick .lbl { font-size:0.75rem; color:var(--text-light); margin-top:4px; font-weight:500; }
+
+        .timer-display { font-family:'Inter',monospace; font-size:1.8rem; font-weight:800; color:var(--primary-dark); letter-spacing:2px; text-align:center; padding:1rem; background:linear-gradient(135deg,rgba(46,111,149,0.05),rgba(79,163,209,0.08)); border-radius:var(--radius); border:1.5px solid rgba(46,111,149,0.15); }
+        .timer-lbl { font-size:0.75rem; color:var(--text-light); font-weight:500; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; text-align:center; }
+
+        .map-card { position:relative; }
+        .map-card.glow::after { content:''; position:absolute; bottom:-2px; left:10%; right:10%; height:4px; background:linear-gradient(90deg,transparent,var(--primary),transparent); border-radius:0 0 4px 4px; animation:mapGlow 2s ease-in-out infinite; }
+        @keyframes mapGlow { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+
+        .trail-scroll { max-height:280px; overflow-y:auto; }
+        .trail-scroll::-webkit-scrollbar { width:5px; }
+        .trail-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+        .leaflet-popup-content-wrapper { border-radius:var(--radius)!important; box-shadow:var(--shadow-md)!important; }
+        .leaflet-popup-content { font-family:'Poppins',sans-serif!important; font-size:0.85rem!important; margin:12px 16px!important; }
+
+        /* Admin-specific */
+        .admin-stat-box { padding:20px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); text-align:center; transition:all 0.3s; }
+        .admin-stat-box:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); }
+        .admin-stat-box .big-num { font-size:2.2rem; font-weight:800; color:var(--primary); }
+        .admin-stat-box .stat-lbl { font-size:0.82rem; color:var(--text-light); margin-top:4px; }
+        .worker-card { display:flex; align-items:center; gap:14px; padding:14px; background:var(--bg-light); border-radius:var(--radius-sm); border:1px solid var(--border-light); cursor:pointer; transition:all 0.3s; }
+        .worker-card:hover { border-color:var(--primary); background:var(--primary-glow); transform:translateX(4px); }
+        .w-avatar { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--primary-light)); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:1rem; flex-shrink:0; }
+
+        .info-row { display:flex; justify-content:space-between; padding:12px; background:var(--bg-light); border-radius:var(--radius-sm); }
+        .info-row .k { font-size:0.88rem; color:var(--text-light); }
+        .info-row .v { font-size:0.88rem; font-weight:600; }
+
+        @media (max-width:768px) {
+            .stats-ticker { grid-template-columns:repeat(2,1fr); }
+            #live-map { height:300px; }
+            .tracking-controls { flex-direction:column; align-items:stretch; }
+            .btn-track { justify-content:center; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><div class="shield-icon">🛡️</div> GigShield AI</a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+        <div class="navbar-links" id="nav-right">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/activity">Activity</a>
+            <a href="/location-tracker" class="active">Location</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar" id="sidebar-worker">
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard"><span class="menu-icon">🏠</span> Dashboard</a></li>
+                <li><a href="/buy-policy"><span class="menu-icon">🛡️</span> Buy Policy</a></li>
+                <li><a href="/active-policy"><span class="menu-icon">📋</span> Active Policy</a></li>
+                <li><a href="/trigger-monitor"><span class="menu-icon">📡</span> Trigger Monitor</a></li>
+                <li><a href="/claims"><span class="menu-icon">💰</span> Claims & Payout</a></li>
+                <li><a href="/activity"><span class="menu-icon">📊</span> Activity Tracker</a></li>
+                <li><a href="/location-tracker" class="active"><span class="menu-icon">📍</span> Location Tracker</a></li>
+                <li><a href="/terms"><span class="menu-icon">📄</span> Policy Terms</a></li>
+                <li><a href="#" onclick="logout()" style="color:var(--danger)!important;"><span class="menu-icon">🚪</span> Logout</a></li>
+            </ul>
+        </aside>
+        <aside class="sidebar" id="sidebar-admin" style="display:none;">
+            <ul class="sidebar-menu">
+                <li><a href="/admin"><span class="menu-icon">📊</span> Admin Dashboard</a></li>
+                <li><a href="/location-tracker" class="active"><span class="menu-icon">📍</span> Worker Locations</a></li>
+                <li><a href="#" onclick="logout()" style="color:var(--danger)!important;"><span class="menu-icon">🚪</span> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content" id="main"><div class="spinner"></div></main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="/js/app.js"></script>
+    <script>
+    if (!isLoggedIn()) window.location.href = '/login';
+
+    const ROLE = isAdmin() ? 'admin' : 'worker';
+    let map, currentMarker, pathLine, trailMarkers = [];
+    let trackingInterval, timerInterval, countdownInterval;
+    let trackingStartTime, isTrackingNow = false, locationPts = [], nextUpdate = 300;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById(ROLE === 'admin' ? 'sidebar-worker' : 'sidebar-admin').style.display = 'none';
+        document.getElementById(ROLE === 'admin' ? 'sidebar-admin' : 'sidebar-worker').style.display = 'block';
+        if (ROLE === 'admin') renderAdmin(); else renderWorker();
+    });
+
+    // ============ INIT MAP ============
+    function initMap() {
+        map = L.map('live-map', { zoomControl: true }).setView([17.385, 78.486], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19
+        }).addTo(map);
+        if (navigator.geolocation && ROLE === 'worker') {
+            navigator.geolocation.getCurrentPosition(p => map.setView([p.coords.latitude, p.coords.longitude], 15), () => {}, { enableHighAccuracy: true });
+        }
+    }
+
+    function getGPS() {
+        return new Promise((ok, fail) => {
+            if (!navigator.geolocation) return fail(new Error('Geolocation not supported'));
+            navigator.geolocation.getCurrentPosition(p => ok({ latitude: p.coords.latitude, longitude: p.coords.longitude, accuracy: p.coords.accuracy }), fail, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+        });
+    }
+
+    // ============ WORKER VIEW ============
+    function renderWorker() {
+        const user = getUser();
+        document.getElementById('main').innerHTML = `
+        <div class="page-header">
+            <h1>📍 My Location Tracker</h1>
+            <p>Track your GPS location while working — data used for verification, zone monitoring & claim eligibility</p>
+        </div>
+
+        <div class="card mb-3 fade-in">
+            <div class="card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+                    <div class="tracking-controls">
+                        <button class="btn-track btn-start" id="btn-start" onclick="startWork()">▶ Start Work</button>
+                        <button class="btn-track btn-stop" id="btn-stop" onclick="stopWork()" disabled>⏹ Stop Work</button>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                        <div class="live-badge off" id="badge"><div class="pulse-dot gray" id="dot"></div><span id="badge-txt">Not Tracking</span></div>
+                    </div>
+                </div>
+                <div class="stats-ticker">
+                    <div class="tick"><div class="val" id="s-hours">0.00</div><div class="lbl">Hours Worked</div></div>
+                    <div class="tick"><div class="val" id="s-dist">0.00</div><div class="lbl">Distance (km)</div></div>
+                    <div class="tick"><div class="val" id="s-pts">0</div><div class="lbl">GPS Points</div></div>
+                    <div class="tick"><div class="val" id="s-status">Inactive</div><div class="lbl">Activity Status</div></div>
+                    <div class="tick"><div class="val" id="s-elig">No</div><div class="lbl">Eligible for Claim</div></div>
+                    <div class="tick"><div class="val" id="s-next">—</div><div class="lbl">Next Update (s)</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-2 mb-3">
+            <div class="card fade-in map-card" id="map-card">
+                <div class="card-header">🗺️ My Live GPS Map <span style="margin-left:auto;font-size:0.78rem;color:var(--text-light);">OpenStreetMap + Leaflet.js</span></div>
+                <div id="live-map"></div>
+            </div>
+            <div class="card fade-in">
+                <div class="card-header">⏱️ Session Details</div>
+                <div class="card-body">
+                    <div class="timer-lbl">ELAPSED WORK TIME</div>
+                    <div class="timer-display" id="timer">00:00:00</div>
+                    <div style="margin-top:1.5rem;display:grid;gap:10px;">
+                        <div class="info-row"><span class="k">Worker Name</span><span class="v">${user?.name || user?.full_name || '—'}</span></div>
+                        <div class="info-row"><span class="k">Session Started</span><span class="v" id="i-started">—</span></div>
+                        <div class="info-row"><span class="k">Current Position</span><span class="v" id="i-pos">—</span></div>
+                        <div class="info-row"><span class="k">Delivery Zone</span><span class="v" id="i-zone">—</span></div>
+                        <div class="info-row"><span class="k">GPS Accuracy</span><span class="v" id="i-acc">—</span></div>
+                        <div class="info-row"><span class="k">Fraud Risk</span><span class="v" id="i-fraud">—</span></div>
+                    </div>
+                    <div style="margin-top:1.5rem;padding:14px;background:linear-gradient(135deg,rgba(46,111,149,0.06),rgba(79,163,209,0.08));border-radius:var(--radius);border:1px solid rgba(46,111,149,0.12);">
+                        <p style="font-size:0.78rem;color:var(--text-light);"><strong style="color:var(--primary);">ℹ How it works:</strong></p>
+                        <p style="font-size:0.76rem;color:var(--text-light);line-height:1.6;">Click <strong>Start Work</strong> to begin GPS tracking. Location sent every <strong>5 minutes</strong>. Eligibility: hours ≥ 4 & distance ≥ 10 km.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card fade-in mb-3">
+            <div class="card-header">📋 GPS Location Trail <span style="margin-left:auto;font-size:0.78rem;color:var(--text-light);" id="trail-cnt">0 points</span></div>
+            <div class="card-body"><div class="trail-scroll"><div class="table-wrap">
+                <table><thead><tr><th>#</th><th>Timestamp</th><th>Latitude</th><th>Longitude</th></tr></thead>
+                <tbody id="trail-tbody"><tr><td colspan="4" style="text-align:center;color:var(--text-light);padding:2rem;">No GPS data yet. Click "Start Work" to begin.</td></tr></tbody></table>
+            </div></div></div>
+        </div>
+
+        <div class="card fade-in">
+            <div class="card-header">🔒 AI Fraud Prevention</div>
+            <div class="card-body"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;">
+                <div style="padding:16px;background:var(--success-bg);border-radius:var(--radius);border:1px solid rgba(34,197,94,0.2);"><div style="font-size:1.3rem;margin-bottom:8px;">✅</div><div style="font-weight:600;font-size:0.9rem;">Activity Verification</div><div style="font-size:0.78rem;color:var(--text-light);">GPS confirms active work in delivery zones</div></div>
+                <div style="padding:16px;background:var(--primary-glow);border-radius:var(--radius);border:1px solid rgba(46,111,149,0.2);"><div style="font-size:1.3rem;margin-bottom:8px;">🔍</div><div style="font-weight:600;font-size:0.9rem;">Fraud Detection</div><div style="font-size:0.78rem;color:var(--text-light);">AI detects spoofed GPS & suspicious patterns</div></div>
+                <div style="padding:16px;background:var(--warning-bg);border-radius:var(--radius);border:1px solid rgba(245,158,11,0.2);"><div style="font-size:1.3rem;margin-bottom:8px;">📍</div><div style="font-weight:600;font-size:0.9rem;">Zone Tracking</div><div style="font-size:0.78rem;color:var(--text-light);">Zone presence verified for payout eligibility</div></div>
+                <div style="padding:16px;background:var(--danger-bg);border-radius:var(--radius);border:1px solid rgba(239,68,68,0.15);"><div style="font-size:1.3rem;margin-bottom:8px;">💰</div><div style="font-weight:600;font-size:0.9rem;">Claim Verification</div><div style="font-size:0.78rem;color:var(--text-light);">Location cross-checked during claims</div></div>
+            </div></div>
+        </div>`;
+        initMap();
+        loadWorkerData();
+    }
+
+    // ============ START WORK (Worker) ============
+    async function startWork() {
+        const btn = document.getElementById('btn-start');
+        btn.disabled = true; btn.textContent = '⏳ Getting GPS...';
+        try {
+            const pos = await getGPS();
+            const r = await apiPost('/api/location/start', { latitude: pos.latitude, longitude: pos.longitude });
+            if (r.success) {
+                isTrackingNow = true; trackingStartTime = new Date();
+                btn.textContent = '▶ Tracking Active';
+                document.getElementById('btn-stop').disabled = false;
+                setBadge(true);
+                addMarker(pos.latitude, pos.longitude);
+                updateInfo(pos, r.zone);
+                locationPts.push({ latitude: pos.latitude, longitude: pos.longitude, timestamp: new Date().toISOString() });
+                renderTrail();
+                trackingInterval = setInterval(sendGPS, 300000);
+                startTimer(); nextUpdate = 300; startCountdown();
+                document.getElementById('map-card').classList.add('glow');
+                showToast('📍 Location tracking started!', 'success');
+            }
+        } catch (e) { btn.disabled = false; btn.textContent = '▶ Start Work'; showToast('Failed: ' + e.message, 'error'); }
+    }
+
+    // ============ STOP WORK (Worker) ============
+    async function stopWork() {
+        const btn = document.getElementById('btn-stop');
+        btn.disabled = true; btn.textContent = '⏳ Stopping...';
+        try {
+            const pos = await getGPS();
+            const r = await apiPost('/api/location/stop', { latitude: pos.latitude, longitude: pos.longitude });
+            if (r.success) {
+                isTrackingNow = false;
+                clearInterval(trackingInterval); clearInterval(timerInterval); clearInterval(countdownInterval);
+                document.getElementById('btn-start').disabled = false;
+                document.getElementById('btn-start').textContent = '▶ Start Work';
+                btn.disabled = true; btn.textContent = '⏹ Stop Work';
+                setBadge(false);
+                document.getElementById('map-card').classList.remove('glow');
+                document.getElementById('s-hours').textContent = r.hours_worked.toFixed(2);
+                document.getElementById('s-dist').textContent = r.distance_travelled.toFixed(2);
+                document.getElementById('s-pts').textContent = r.gps_count;
+                document.getElementById('s-status').textContent = 'Inactive';
+                document.getElementById('s-elig').textContent = r.eligible_for_claim;
+                document.getElementById('s-next').textContent = '—';
+                document.getElementById('i-fraud').textContent = r.fraud_risk;
+                showToast(`✅ Stopped. ${r.hours_worked.toFixed(1)} hrs, ${r.distance_travelled.toFixed(1)} km — Eligible: ${r.eligible_for_claim}`, 'success');
+            }
+        } catch (e) { btn.disabled = false; btn.textContent = '⏹ Stop Work'; showToast('Failed: ' + e.message, 'error'); }
+    }
+
+    // ============ SEND GPS UPDATE (Worker) ============
+    async function sendGPS() {
+        try {
+            const pos = await getGPS();
+            const r = await apiPost('/api/location/update', { latitude: pos.latitude, longitude: pos.longitude });
+            if (r.success) {
+                addMarker(r.latitude, r.longitude);
+                locationPts.push({ latitude: r.latitude, longitude: r.longitude, timestamp: r.timestamp });
+                renderTrail(); drawPath();
+                document.getElementById('s-hours').textContent = r.hours_worked.toFixed(2);
+                document.getElementById('s-dist').textContent = r.distance_travelled.toFixed(2);
+                document.getElementById('s-pts').textContent = r.gps_count;
+                document.getElementById('s-status').textContent = 'Active';
+                document.getElementById('s-elig').textContent = r.eligible_for_claim;
+                document.getElementById('i-fraud').textContent = r.fraud_risk;
+                document.getElementById('i-zone').textContent = r.zone;
+                document.getElementById('i-pos').textContent = `${r.latitude.toFixed(5)}, ${r.longitude.toFixed(5)}`;
+                nextUpdate = 300;
+            }
+        } catch (e) { console.error('GPS update error:', e); }
+    }
+
+    // ============ LOAD EXISTING DATA (Worker) ============
+    async function loadWorkerData() {
+        try {
+            const d = await apiGet('/api/location/user');
+            if (d.tracking_active) {
+                isTrackingNow = true;
+                trackingStartTime = d.summary.tracking_start_time ? new Date(d.summary.tracking_start_time) : new Date();
+                document.getElementById('btn-start').disabled = true;
+                document.getElementById('btn-start').textContent = '▶ Tracking Active';
+                document.getElementById('btn-stop').disabled = false;
+                setBadge(true);
+                document.getElementById('map-card').classList.add('glow');
+                trackingInterval = setInterval(sendGPS, 300000);
+                startTimer(); nextUpdate = 300; startCountdown();
+            }
+            if (d.locations && d.locations.length > 0) {
+                locationPts = d.locations;
+                renderTrail();
+                const last = d.locations[d.locations.length - 1];
+                addMarker(last.latitude, last.longitude);
+                drawPath();
+            }
+            if (d.summary) {
+                document.getElementById('s-hours').textContent = (d.summary.hours_worked || 0).toFixed(2);
+                document.getElementById('s-dist').textContent = (d.summary.distance_travelled || 0).toFixed(2);
+                document.getElementById('s-pts').textContent = d.summary.gps_count || 0;
+                document.getElementById('s-status').textContent = d.summary.status || 'Inactive';
+                document.getElementById('s-elig').textContent = d.summary.eligible_for_claim || 'No';
+                document.getElementById('i-zone').textContent = d.summary.zone || '—';
+                document.getElementById('i-fraud').textContent = d.summary.fraud_risk || '—';
+            }
+            if (d.current_location) {
+                document.getElementById('i-pos').textContent = `${d.current_location.latitude.toFixed(5)}, ${d.current_location.longitude.toFixed(5)}`;
+            }
+        } catch (e) { console.error('Load failed:', e); }
+    }
+
+    // ============ MAP HELPERS ============
+    function addMarker(lat, lng) {
+        if (currentMarker) currentMarker.setLatLng([lat, lng]);
+        else {
+            currentMarker = L.marker([lat, lng], {
+                icon: L.divIcon({ className:'m', html:`<div style="width:20px;height:20px;background:#22C55E;border:3px solid white;border-radius:50%;box-shadow:0 0 0 4px #22C55E44,0 2px 8px rgba(0,0,0,0.3);animation:pulse 1.5s ease-in-out infinite;"></div>`, iconSize:[20,20], iconAnchor:[10,10] })
+            }).addTo(map).bindPopup(`<div style="text-align:center;"><strong style="color:#16a34a;">📍 Your Location</strong><br><span style="font-size:0.78rem;color:#666;">${lat.toFixed(5)}, ${lng.toFixed(5)}</span></div>`);
+        }
+        map.setView([lat, lng], map.getZoom() || 15);
+    }
+
+    function drawPath() {
+        if (pathLine) map.removeLayer(pathLine);
+        trailMarkers.forEach(m => map.removeLayer(m)); trailMarkers = [];
+        if (locationPts.length < 2) return;
+        const ll = locationPts.map(p => [p.latitude, p.longitude]);
+        pathLine = L.polyline(ll, { color:'#2E6F95', weight:4, opacity:0.8, dashArray:'8,6' }).addTo(map);
+        locationPts.forEach((p, i) => {
+            if (i === locationPts.length - 1) return;
+            const m = L.marker([p.latitude, p.longitude], {
+                icon: L.divIcon({ className:'t', html:`<div style="width:12px;height:12px;background:#2E6F95;border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.2);opacity:0.7;"></div>`, iconSize:[12,12], iconAnchor:[6,6] })
+            }).addTo(map).bindPopup(`<div style="font-size:0.82rem;"><strong>Point #${i+1}</strong><br>${new Date(p.timestamp).toLocaleTimeString()}</div>`);
+            trailMarkers.push(m);
+        });
+        map.fitBounds(pathLine.getBounds().pad(0.1));
+    }
+
+    function renderTrail() {
+        const tb = document.getElementById('trail-tbody');
+        const ct = document.getElementById('trail-cnt');
+        ct.textContent = `${locationPts.length} points`;
+        if (!locationPts.length) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-light);padding:2rem;">No GPS data yet.</td></tr>'; return; }
+        tb.innerHTML = [...locationPts].reverse().map((p, i) => {
+            const idx = locationPts.length - i;
+            return `<tr><td><span class="badge badge-info">${idx}</span></td><td>${new Date(p.timestamp).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</td><td>${p.latitude.toFixed(6)}</td><td>${p.longitude.toFixed(6)}</td></tr>`;
+        }).join('');
+    }
+
+    function setBadge(on) {
+        document.getElementById('badge').className = on ? 'live-badge on' : 'live-badge off';
+        document.getElementById('dot').className = on ? 'pulse-dot green' : 'pulse-dot gray';
+        document.getElementById('badge-txt').textContent = on ? 'LIVE Tracking' : 'Not Tracking';
+    }
+
+    function updateInfo(pos, zone) {
+        document.getElementById('i-started').textContent = new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
+        document.getElementById('i-pos').textContent = `${pos.latitude.toFixed(5)}, ${pos.longitude.toFixed(5)}`;
+        document.getElementById('i-zone').textContent = zone || '—';
+        document.getElementById('i-acc').textContent = pos.accuracy ? `±${Math.round(pos.accuracy)}m` : '—';
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            if (!trackingStartTime) return;
+            const d = Math.floor((Date.now() - trackingStartTime.getTime()) / 1000);
+            document.getElementById('timer').textContent = `${String(Math.floor(d/3600)).padStart(2,'0')}:${String(Math.floor((d%3600)/60)).padStart(2,'0')}:${String(d%60).padStart(2,'0')}`;
+        }, 1000);
+    }
+
+    function startCountdown() {
+        countdownInterval = setInterval(() => { nextUpdate--; if (nextUpdate <= 0) nextUpdate = 300; document.getElementById('s-next').textContent = nextUpdate; }, 1000);
+    }
+
+    // ============ ADMIN VIEW ============
+    function renderAdmin() {
+        document.getElementById('main').innerHTML = `
+        <div class="page-header">
+            <h1>👁️ Worker Location Monitor</h1>
+            <p>Real-time view of all workers — activity tracking, fraud detection & payout eligibility</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;" class="mb-3 fade-in">
+            <div class="admin-stat-box"><div class="big-num" id="a-total">—</div><div class="stat-lbl">Total Workers</div></div>
+            <div class="admin-stat-box"><div class="big-num" id="a-active" style="color:#22C55E;">—</div><div class="stat-lbl">Currently Active</div></div>
+            <div class="admin-stat-box"><div class="big-num" id="a-inactive">—</div><div class="stat-lbl">Inactive</div></div>
+            <div class="admin-stat-box"><div class="big-num" id="a-elig" style="color:#2E6F95;">—</div><div class="stat-lbl">Eligible for Claim</div></div>
+            <div class="admin-stat-box"><div class="big-num" id="a-fraud" style="color:#EF4444;">—</div><div class="stat-lbl">Fraud Risk Workers</div></div>
+        </div>
+
+        <div class="grid-2 mb-3">
+            <div class="card fade-in map-card">
+                <div class="card-header">🗺️ All Workers — Live Map <span style="margin-left:auto;font-size:0.78rem;color:var(--text-light);">Green=Active, Red=Fraud, Gray=Inactive</span></div>
+                <div id="live-map"></div>
+            </div>
+            <div class="card fade-in">
+                <div class="card-header">👷 Worker List <span style="margin-left:auto;" id="w-count" class="badge badge-success">0 online</span></div>
+                <div class="card-body"><div id="w-list" style="display:grid;gap:10px;max-height:380px;overflow-y:auto;">
+                    <div style="text-align:center;padding:2rem;color:var(--text-light);"><div class="spinner"></div>Loading...</div>
+                </div></div>
+            </div>
+        </div>
+
+        <div class="card fade-in">
+            <div class="card-header">📋 Worker Activity Table <button class="btn btn-sm btn-outline" style="margin-left:auto;" onclick="loadAdmin()">🔄 Refresh</button></div>
+            <div class="card-body"><div class="table-wrap"><table>
+                <thead><tr><th>Worker</th><th>City</th><th>Hours</th><th>Distance</th><th>Status</th><th>Fraud Risk</th><th>Eligible</th><th>GPS Points</th></tr></thead>
+                <tbody id="a-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:2rem;">Loading...</td></tr></tbody>
+            </table></div></div>
+        </div>`;
+        initMap();
+        loadAdmin();
+        setInterval(loadAdmin, 30000);
+    }
+
+    let adminMarkers = [];
+    async function loadAdmin() {
+        try {
+            const d = await apiGet('/api/admin/live-workers');
+            const w = d.workers || [];
+
+            document.getElementById('a-total').textContent = d.total_workers || 0;
+            document.getElementById('a-active').textContent = d.currently_active || 0;
+            document.getElementById('a-inactive').textContent = d.inactive || 0;
+            document.getElementById('a-elig').textContent = d.eligible_for_claim || 0;
+            document.getElementById('a-fraud').textContent = d.fraud_risk_workers || 0;
+            document.getElementById('w-count').textContent = `${d.currently_active || 0} active`;
+
+            adminMarkers.forEach(m => map.removeLayer(m)); adminMarkers = [];
+
+            if (!w.length) {
+                document.getElementById('w-list').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-light);"><div style="font-size:2.5rem;margin-bottom:12px;">📍</div><div style="font-weight:600;">No Workers Tracked Today</div><div style="font-size:0.82rem;">Workers appear here when they click "Start Work"</div></div>`;
+                document.getElementById('a-tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:2rem;">No activity data</td></tr>';
+                return;
+            }
+
+            // Worker cards
+            document.getElementById('w-list').innerHTML = w.map(x => `
+                <div class="worker-card" onclick="panTo(${x.current_location?.latitude},${x.current_location?.longitude},'${(x.worker_name||'').replace(/'/g,"\\'")}')">
+                    <div class="w-avatar">${(x.worker_name||'W')[0].toUpperCase()}</div>
+                    <div style="flex:1;"><div style="font-weight:600;font-size:0.9rem;">${x.worker_name||'Unknown'}</div><div style="font-size:0.78rem;color:var(--text-light);">${x.city} • ${x.platform} • ${x.zone||'—'}</div></div>
+                    <div style="text-align:right;"><div style="font-weight:700;font-size:0.9rem;color:${x.fraud_risk==='High'?'var(--danger)':x.fraud_risk==='Medium'?'var(--warning)':'var(--primary)'};">${x.fraud_risk}</div><div style="font-size:0.75rem;color:var(--text-light);">${(x.hours_worked||0).toFixed(1)}h / ${(x.distance_travelled||0).toFixed(1)}km</div></div>
+                </div>`).join('');
+
+            // Table
+            document.getElementById('a-tbody').innerHTML = w.map(x => {
+                const frColor = x.fraud_risk==='High'?'badge-danger':x.fraud_risk==='Medium'?'badge-warning':'badge-success';
+                const stColor = x.tracking_active?'badge-success':'badge-info';
+                return `<tr>
+                    <td><strong>${x.worker_name||'Unknown'}</strong></td><td>${x.city||'—'}</td>
+                    <td>${(x.hours_worked||0).toFixed(1)} hrs</td><td>${(x.distance_travelled||0).toFixed(1)} km</td>
+                    <td><span class="badge ${stColor}">${x.status}</span></td>
+                    <td><span class="badge ${frColor}">${x.fraud_risk}</span></td>
+                    <td><span class="badge ${x.eligible_for_claim==='Yes'?'badge-success':'badge-warning'}">${x.eligible_for_claim}</span></td>
+                    <td>${x.gps_count||0}</td>
+                </tr>`;
+            }).join('');
+
+            // Map markers
+            const bounds = [];
+            w.forEach(x => {
+                if (!x.current_location) return;
+                const lat = x.current_location.latitude, lng = x.current_location.longitude;
+                const color = x.fraud_risk==='High'?'#EF4444':x.tracking_active?'#22C55E':'#9CA3AF';
+                const mk = L.marker([lat, lng], {
+                    icon: L.divIcon({ className:'wm', html:`<div style="width:24px;height:24px;background:${color};border:3px solid white;border-radius:50%;box-shadow:0 0 0 3px ${color}44,0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;">${(x.worker_name||'W')[0]}</div>`, iconSize:[24,24], iconAnchor:[12,12] })
+                }).addTo(map).bindPopup(`<div style="min-width:180px;"><strong>👷 ${x.worker_name}</strong><br><span style="font-size:0.8rem;color:#666;">🏙️ ${x.city} (${x.platform})<br>📍 ${x.zone||'—'}<br>⏱️ ${(x.hours_worked||0).toFixed(1)} hrs<br>🛣️ ${(x.distance_travelled||0).toFixed(1)} km<br>🔍 Risk: ${x.fraud_risk}<br>💰 Eligible: ${x.eligible_for_claim}</span></div>`);
+                adminMarkers.push(mk);
+                bounds.push([lat, lng]);
+            });
+            if (bounds.length === 1) map.setView(bounds[0], 14);
+            else if (bounds.length > 1) map.fitBounds(bounds, { padding:[40,40] });
+        } catch (e) { console.error('Admin load failed:', e); showToast('Failed to load: ' + e.message, 'error'); }
+    }
+
+    function panTo(lat, lng, name) {
+        if (lat && lng) { map.setView([lat, lng], 16); showToast(`📍 Focused on ${name}`, 'info'); }
+    }
+    </script>
+</body>
+</html>

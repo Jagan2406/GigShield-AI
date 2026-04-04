@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — GigShield AI</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><div class="shield-icon">🛡️</div> GigShield AI</a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+        <div class="navbar-links" id="nav-right">
+            <a href="/dashboard" class="active">Dashboard</a>
+            <a href="/buy-policy">Buy Policy</a>
+            <a href="/trigger-monitor">Triggers</a>
+            <a href="/claims">Claims</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard" class="active"><span class="menu-icon">🏠</span> Dashboard</a></li>
+                <li><a href="/buy-policy"><span class="menu-icon">🛡️</span> Buy Policy</a></li>
+                <li><a href="/active-policy"><span class="menu-icon">📋</span> Active Policy</a></li>
+                <li><a href="/trigger-monitor"><span class="menu-icon">📡</span> Trigger Monitor</a></li>
+                <li><a href="/claims"><span class="menu-icon">💰</span> Claims & Payout</a></li>
+                <li><a href="/activity"><span class="menu-icon">📍</span> Activity Tracker</a></li>
+                <li><a href="/terms"><span class="menu-icon">📄</span> Policy Terms</a></li>
+                <li><a href="#" onclick="logout()" style="color:var(--danger)!important;"><span class="menu-icon">🚪</span> Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 id="welcome-msg">Welcome back! 👋</h1>
+                <p id="user-meta">Loading your dashboard...</p>
+            </div>
+
+            <!-- Top 5 Cards -->
+            <div class="grid-5 mb-4" id="stat-cards">
+                <div class="stat-card blue">
+                    <div class="stat-icon">🛡️</div>
+                    <div class="stat-label">Active Policy</div>
+                    <div class="stat-value" id="stat-policy">—</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-icon">💸</div>
+                    <div class="stat-label">Weekly Premium</div>
+                    <div class="stat-value" id="stat-premium">—</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-label">Payout Amount</div>
+                    <div class="stat-value" id="stat-payout">—</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="stat-icon">🏙️</div>
+                    <div class="stat-label">City Tier</div>
+                    <div class="stat-value" id="stat-tier">—</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-label">Risk Level</div>
+                    <div class="stat-value" id="stat-risk">—</div>
+                </div>
+            </div>
+
+            <div class="grid-2 mb-4">
+                <!-- Trigger Status -->
+                <div class="card">
+                    <div class="card-header">📡 Trigger Status — Real-time</div>
+                    <div class="card-body" id="trigger-status">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+
+                <!-- Earnings Protection -->
+                <div class="card">
+                    <div class="card-header">💼 Earnings Protection</div>
+                    <div class="card-body" id="earnings-card">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card mb-4">
+                <div class="card-header">⚡ Quick Actions</div>
+                <div class="card-body" style="display:flex;gap:1rem;flex-wrap:wrap;">
+                    <a href="/buy-policy" class="btn btn-primary">🛡️ Buy Policy</a>
+                    <a href="/active-policy" class="btn btn-outline">📋 View Active Policy</a>
+                    <a href="/claims" class="btn btn-outline">💰 View Claims</a>
+                    <a href="/activity" class="btn btn-outline">📍 View Activity</a>
+                    <a href="/active-policy#download" class="btn btn-outline">⬇️ Download Policy</a>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="card">
+                <div class="card-header">🔔 Notifications</div>
+                <div class="card-body" id="notifications-list">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        if (!isLoggedIn()) window.location.href = '/login';
+        if (isAdmin()) window.location.href = '/admin';
+
+        async function loadDashboard() {
+            try {
+                const data = await apiGet('/api/dashboard');
+                const { user, policy, triggers, earnings_protection, claims_summary, notifications } = data;
+
+                // Header
+                document.getElementById('welcome-msg').textContent = `Welcome back, ${user.full_name}! 👋`;
+                document.getElementById('user-meta').textContent = `${user.city} · ${user.platform || 'Gig Worker'} · Tier ${user.city_tier}`;
+
+                // Stat cards
+                document.getElementById('stat-policy').textContent = policy ? 'Active' : 'Inactive';
+                document.getElementById('stat-premium').textContent = policy ? formatCurrency(policy.premium) : '—';
+                document.getElementById('stat-payout').textContent = policy ? formatCurrency(policy.payout) : '—';
+                document.getElementById('stat-tier').textContent = `Tier ${user.city_tier}`;
+                document.getElementById('stat-risk').textContent = user.risk_level;
+
+                // Trigger status
+                let trigHtml = '';
+                if (triggers.length === 0) {
+                    trigHtml = '<p style="color:var(--text-light);">No data available</p>';
+                } else {
+                    triggers.forEach(t => {
+                        const pct = Math.min(100, Math.round((t.current / t.threshold) * 100));
+                        const cls = pct >= 100 ? 'danger' : pct >= 80 ? 'warning' : '';
+                        const badge = t.triggered
+                            ? '<span class="badge badge-danger">TRIGGERED</span>'
+                            : pct >= 80
+                                ? '<span class="badge badge-warning">Near Limit</span>'
+                                : '<span class="badge badge-success">Safe</span>';
+                        trigHtml += `
+                            <div class="trigger-row">
+                                <span class="trigger-label">${t.name}</span>
+                                <div class="trigger-bar">
+                                    <div class="trigger-values"><span>${t.current}${t.unit}</span><span>Limit: ${t.threshold}${t.unit}</span></div>
+                                    <div class="progress-bar"><div class="fill ${cls}" style="width:${pct}%"></div></div>
+                                </div>
+                                <div class="trigger-status">${badge}</div>
+                            </div>`;
+                    });
+                }
+                document.getElementById('trigger-status').innerHTML = trigHtml;
+
+                // Earnings protection
+                const ep = earnings_protection;
+                document.getElementById('earnings-card').innerHTML = `
+                    <div style="display:grid;gap:12px;">
+                        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);">
+                            <span style="color:var(--text-light);">Weekly Income</span>
+                            <strong>${formatCurrency(ep.weekly_income)}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);">
+                            <span style="color:var(--text-light);">Protected Amount</span>
+                            <strong style="color:var(--success);">${formatCurrency(ep.protected_amount)}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);">
+                            <span style="color:var(--text-light);">Policy Status</span>
+                            <span class="badge ${ep.policy_status === 'Active' ? 'badge-success' : 'badge-danger'}">${ep.policy_status}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);">
+                            <span style="color:var(--text-light);">Days Remaining</span>
+                            <strong>${ep.days_remaining} days</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                            <span style="color:var(--text-light);">Total Claims Paid</span>
+                            <strong style="color:var(--primary);">${formatCurrency(claims_summary.total_payout)}</strong>
+                        </div>
+                    </div>`;
+
+                // Notifications
+                if (notifications.length === 0) {
+                    document.getElementById('notifications-list').innerHTML = '<p style="color:var(--text-light);">No notifications yet</p>';
+                } else {
+                    document.getElementById('notifications-list').innerHTML = notifications.map(n => `
+                        <div class="notif-item">
+                            <div class="notif-icon ${n.type}">
+                                ${n.type === 'warning' ? '⚠️' : 'ℹ️'}
+                            </div>
+                            <div>
+                                <div class="notif-text">${n.message}</div>
+                                <div class="notif-time">${formatDate(n.created_at)}</div>
+                            </div>
+                        </div>`).join('');
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

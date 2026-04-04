@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claims & Payout — GigShield AI</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><div class="shield-icon">🛡️</div> GigShield AI</a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+        <div class="navbar-links" id="nav-right">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/claims" class="active">Claims</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard"><span class="menu-icon">🏠</span> Dashboard</a></li>
+                <li><a href="/buy-policy"><span class="menu-icon">🛡️</span> Buy Policy</a></li>
+                <li><a href="/active-policy"><span class="menu-icon">📋</span> Active Policy</a></li>
+                <li><a href="/trigger-monitor"><span class="menu-icon">📡</span> Trigger Monitor</a></li>
+                <li><a href="/claims" class="active"><span class="menu-icon">💰</span> Claims & Payout</a></li>
+                <li><a href="/activity"><span class="menu-icon">📍</span> Activity Tracker</a></li>
+                <li><a href="/terms"><span class="menu-icon">📄</span> Policy Terms</a></li>
+                <li><a href="#" onclick="logout()" style="color:var(--danger)!important;"><span class="menu-icon">🚪</span> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Claims & Payout 💰</h1>
+                <p>Automatic claims — system-triggered when weather thresholds are crossed</p>
+            </div>
+
+            <div id="claims-content">
+                <div class="spinner"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        if (!isLoggedIn()) window.location.href = '/login';
+
+        async function loadClaims() {
+            try {
+                const data = await apiGet('/api/claims');
+                const { latest, processing_steps, fraud_result, history } = data;
+
+                let html = '';
+                if (!latest) {
+                    html = `<div class="card" style="text-align:center;padding:3rem;">
+                        <div style="font-size:3rem;margin-bottom:1rem;">💰</div>
+                        <h3>No Claims Yet</h3>
+                        <p style="color:var(--text-light);margin-top:0.5rem;">Claims are automatically created when a weather trigger is reached</p>
+                    </div>`;
+                    document.getElementById('claims-content').innerHTML = html;
+                    return;
+                }
+
+                // Section 1: Latest Claim Status
+                html += `
+                    <div class="card mb-3 fade-in">
+                        <div class="card-header">🔔 Latest Claim Status</div>
+                        <div class="card-body">
+                            <div class="grid-4">
+                                <div style="text-align:center;padding:1rem;background:var(--bg-light);border-radius:var(--radius);">
+                                    <div style="font-size:0.8rem;color:var(--text-light);">Trigger Type</div>
+                                    <div style="font-weight:700;font-size:1.1rem;margin-top:4px;">${latest.trigger_type}</div>
+                                </div>
+                                <div style="text-align:center;padding:1rem;background:var(--bg-light);border-radius:var(--radius);">
+                                    <div style="font-size:0.8rem;color:var(--text-light);">Trigger Value</div>
+                                    <div style="font-weight:700;font-size:1.1rem;margin-top:4px;color:var(--danger);">${latest.trigger_value}${latest.trigger_type === 'Rain' ? 'mm' : latest.trigger_type === 'Heat' ? '°C' : ''}</div>
+                                </div>
+                                <div style="text-align:center;padding:1rem;background:var(--bg-light);border-radius:var(--radius);">
+                                    <div style="font-size:0.8rem;color:var(--text-light);">Trigger Date</div>
+                                    <div style="font-weight:700;font-size:1rem;margin-top:4px;">${formatDate(latest.createdAt || latest.date)}</div>
+                                </div>
+                                <div style="text-align:center;padding:1rem;background:var(--bg-light);border-radius:var(--radius);">
+                                    <div style="font-size:0.8rem;color:var(--text-light);">Claim Status</div>
+                                    <div style="margin-top:4px;"><span class="badge ${latest.status === 'paid' ? 'badge-success' : latest.status === 'rejected' ? 'badge-danger' : 'badge-warning'}">${(latest.status || 'processing').toUpperCase()}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                html += `<div class="grid-2 mb-3">`;
+
+                // Section 2: Claim Processing Steps
+                if (processing_steps) {
+                    html += `
+                        <div class="card fade-in">
+                            <div class="card-header">⚙️ Automated Claim Pipeline</div>
+                            <div class="card-body">
+                                <div class="steps-timeline">
+                                    ${processing_steps.map(s => `
+                                        <div class="step-item">
+                                            <div class="step-dot ${s.status.toLowerCase()}">
+                                                ${s.status === 'Done' ? '✓' : s.status === 'Failed' ? '✕' : '?'}
+                                            </div>
+                                            <div class="step-info">
+                                                <h4>${s.name || s.step}</h4>
+                                                ${s.detail ? `<p>${s.detail}</p>` : ''}
+                                            </div>
+                                        </div>`).join('')}
+                                </div>
+                            </div>
+                        </div>`;
+                }
+
+                // Section 3: Fraud Detection
+                if (fraud_result) {
+                    const fs = fraud_result.fraud_score || 0;
+                    const fColor = fs > 0.7 ? 'var(--danger)' : fs > 0.5 ? 'var(--warning)' : 'var(--success)';
+                    html += `
+                        <div class="card fade-in">
+                            <div class="card-header">🔍 Fraud Detection — Isolation Forest</div>
+                            <div class="card-body">
+                                <div style="display:grid;gap:10px;margin-bottom:16px;">
+                                    ${fraudRow('GPS Location Verified', fraud_result.gps_verified)}
+                                    ${fraudRow('Worker Active', fraud_result.worker_active)}
+                                    ${fraudRow('Duplicate Claim', fraud_result.duplicate_claim, true)}
+                                    ${fraudRow('Suspicious Activity', fraud_result.suspicious_activity, true)}
+                                </div>
+                                <div style="text-align:center;padding:1rem;background:var(--bg-light);border-radius:var(--radius);">
+                                    <div style="font-size:0.85rem;color:var(--text-light);margin-bottom:6px;">Fraud Score (0 = Safe, 1 = Fraud)</div>
+                                    <div style="font-size:2.5rem;font-weight:800;color:${fColor};">${fs.toFixed(2)}</div>
+                                    <span class="badge ${fs < 0.5 ? 'badge-success' : fs < 0.7 ? 'badge-warning' : 'badge-danger'}" style="margin-top:6px;">${fraud_result.fraud_result}</span>
+                                    <div class="progress-bar" style="margin-top:12px;">
+                                        <div class="fill ${fs > 0.7 ? 'danger' : fs > 0.5 ? 'warning' : 'success'}" style="width:${fs * 100}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                }
+
+                html += `</div>`;
+
+                // Section 4: Payout Status
+                html += `
+                    <div class="card mb-3 fade-in">
+                        <div class="card-header">💸 Payout Status</div>
+                        <div class="card-body">
+                            <div class="grid-4">
+                                <div style="text-align:center;padding:1rem;background:var(--success-bg);border-radius:var(--radius);border:1px solid var(--success);">
+                                    <div style="font-size:0.8rem;color:#16a34a;">Payout Amount</div>
+                                    <div style="font-weight:700;font-size:1.3rem;color:var(--success);">${formatCurrency(latest.payout || 0)}</div>
+                                </div>
+                                <div style="text-align:center;padding:1rem;background:var(--bg-light);border-radius:var(--radius);">
+                                    <div style="font-size:0.8rem;color:var(--text-light);">Payment Method</div>
+                                    <div style="font-weight:600;margin-top:4px;">${latest.payment_method || 'Bank Transfer'}</div>
+                                </div>
+                                <div style="text-align:center;padding:1rem;background:var(--bg-light);border-radius:var(--radius);">
+                                    <div style="font-size:0.8rem;color:var(--text-light);">Transaction ID</div>
+                                    <div style="font-weight:600;font-size:0.85rem;margin-top:4px;">${latest.transaction_id || '—'}</div>
+                                </div>
+                                <div style="text-align:center;padding:1rem;background:var(--bg-light);border-radius:var(--radius);">
+                                    <div style="font-size:0.8rem;color:var(--text-light);">Payment Status</div>
+                                    <div style="margin-top:4px;"><span class="badge ${latest.status === 'paid' ? 'badge-success' : 'badge-warning'}">${(latest.status === 'paid' ? 'COMPLETED' : 'PENDING')}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                // Section 5: Claim History
+                html += `
+                    <div class="card fade-in">
+                        <div class="card-header">📅 Claim History</div>
+                        <div class="card-body">
+                            <div class="table-wrap">
+                                <table>
+                                    <thead><tr><th>Date</th><th>Trigger</th><th>Value</th><th>Fraud Score</th><th>Amount</th><th>Status</th></tr></thead>
+                                    <tbody>
+                                        ${history.map(c => `<tr>
+                                            <td>${formatDate(c.createdAt || c.date || c.created_at)}</td>
+                                            <td><span class="badge badge-info">${c.trigger_type}</span></td>
+                                            <td>${c.trigger_value}${c.trigger_type === 'Rain' ? 'mm' : c.trigger_type === 'Heat' ? '°C' : ''}</td>
+                                            <td><span style="color:${(c.fraud_score || 0) < 0.5 ? 'var(--success)' : (c.fraud_score || 0) < 0.7 ? 'var(--warning)' : 'var(--danger)'}">${(c.fraud_score || 0).toFixed(2)}</span></td>
+                                            <td><strong style="color:var(--success);">${(c.payout || 0) > 0 ? formatCurrency(c.payout || 0) : '—'}</strong></td>
+                                            <td><span class="badge ${c.status === 'paid' ? 'badge-success' : c.status === 'rejected' ? 'badge-danger' : 'badge-warning'}">${(c.status || 'processing').toUpperCase()}</span></td>
+                                        </tr>`).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>`;
+
+                document.getElementById('claims-content').innerHTML = html;
+            } catch (err) {
+                showToast(err.message, 'error');
+                document.getElementById('claims-content').innerHTML = `<div class="card" style="padding:2rem;text-align:center;"><p style="color:var(--danger);">${err.message}</p></div>`;
+            }
+        }
+
+        function fraudRow(label, value, invertColor = false) {
+            const isGood = invertColor ? !value : value;
+            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--bg-light);border-radius:6px;">
+                <span style="font-size:0.88rem;">${label}</span>
+                <span class="badge ${isGood ? 'badge-success' : 'badge-danger'}">${value ? 'Yes' : 'No'}</span>
+            </div>`;
+        }
+
+        loadClaims();
+    </script>
+</body>
+</html>

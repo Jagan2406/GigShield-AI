@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trigger Monitor — GigShield AI</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><div class="shield-icon">🛡️</div> GigShield AI</a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+        <div class="navbar-links" id="nav-right">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/trigger-monitor" class="active">Triggers</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard"><span class="menu-icon">🏠</span> Dashboard</a></li>
+                <li><a href="/buy-policy"><span class="menu-icon">🛡️</span> Buy Policy</a></li>
+                <li><a href="/active-policy"><span class="menu-icon">📋</span> Active Policy</a></li>
+                <li><a href="/trigger-monitor" class="active"><span class="menu-icon">📡</span> Trigger Monitor</a></li>
+                <li><a href="/claims"><span class="menu-icon">💰</span> Claims & Payout</a></li>
+                <li><a href="/activity"><span class="menu-icon">📍</span> Activity Tracker</a></li>
+                <li><a href="/terms"><span class="menu-icon">📄</span> Policy Terms</a></li>
+                <li><a href="#" onclick="logout()" style="color:var(--danger)!important;"><span class="menu-icon">🚪</span> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Trigger Monitor 📡</h1>
+                <p>Real-time environmental data and AI risk prediction — Parametric Engine</p>
+            </div>
+
+            <!-- Section 1: City Environmental Data -->
+            <div class="grid-5 mb-4" id="env-cards">
+                <div class="stat-card blue">
+                    <div class="stat-icon">🌧️</div>
+                    <div class="stat-label">Rainfall</div>
+                    <div class="stat-value" id="env-rain">—</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-icon">🌡️</div>
+                    <div class="stat-label">Temperature</div>
+                    <div class="stat-value" id="env-temp">—</div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-icon">😷</div>
+                    <div class="stat-label">AQI</div>
+                    <div class="stat-value" id="env-aqi">—</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon">🌊</div>
+                    <div class="stat-label">Flood Alert</div>
+                    <div class="stat-value" id="env-flood">—</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="stat-icon">🚫</div>
+                    <div class="stat-label">Curfew Alert</div>
+                    <div class="stat-value" id="env-curfew">No</div>
+                </div>
+            </div>
+
+            <div class="grid-2 mb-4">
+                <!-- Section 2: Trigger Threshold Table -->
+                <div class="card">
+                    <div class="card-header">📊 Trigger Threshold Status</div>
+                    <div class="card-body" id="threshold-table">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Overall Status Box -->
+                <div class="card">
+                    <div class="card-header">🚦 Trigger Status</div>
+                    <div class="card-body">
+                        <div id="overall-status" class="status-box safe" style="margin-bottom:1rem;">
+                            <div style="font-size:2.5rem;margin-bottom:0.5rem;">✅</div>
+                            Loading...
+                        </div>
+                        <div id="individual-status" style="display:grid;gap:8px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: AI Risk Prediction -->
+            <div class="card mb-4">
+                <div class="card-header">🤖 AI Risk Prediction — Logistic Regression Model</div>
+                <div class="card-body" id="ai-prediction">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <!-- Section 5: Trigger History -->
+            <div class="card">
+                <div class="card-header">📅 Trigger History</div>
+                <div class="card-body" id="trigger-history">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        if (!isLoggedIn()) window.location.href = '/login';
+
+        async function loadData() {
+            try {
+                const [weather, triggers, risk, history] = await Promise.all([
+                    apiGet('/api/weather'),
+                    apiGet('/api/trigger-status'),
+                    apiGet('/api/ai/risk'),
+                    apiGet('/api/trigger-history')
+                ]);
+
+                // Env cards
+                document.getElementById('env-rain').textContent = weather.rain + ' mm';
+                document.getElementById('env-temp').textContent = weather.temp + '°C';
+                document.getElementById('env-aqi').textContent = weather.aqi;
+                document.getElementById('env-flood').textContent = weather.flood_alert ? 'YES' : 'No';
+                if (weather.flood_alert) {
+                    document.getElementById('env-flood').style.color = 'var(--danger)';
+                }
+
+                // Threshold table
+                document.getElementById('threshold-table').innerHTML = `
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead><tr><th>Trigger</th><th>Current</th><th>Threshold</th><th>Progress</th><th>Status</th></tr></thead>
+                            <tbody>
+                                ${triggers.triggers.map(t => {
+                                    const pct = Math.min(100, Math.round((t.current / t.threshold) * 100));
+                                    const cls = pct >= 100 ? 'danger' : pct >= 80 ? 'warning' : '';
+                                    const badge = t.triggered ? '<span class="badge badge-danger">TRIGGERED</span>' : pct >= 80 ? '<span class="badge badge-warning">Near</span>' : '<span class="badge badge-success">Safe</span>';
+                                    return `<tr>
+                                        <td><strong>${t.name}</strong></td>
+                                        <td><strong>${t.current}${t.unit}</strong></td>
+                                        <td>${t.threshold}${t.unit}</td>
+                                        <td style="min-width:120px;">
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <div class="progress-bar" style="flex:1;"><div class="fill ${cls}" style="width:${pct}%"></div></div>
+                                                <span style="font-size:0.78rem;font-weight:600;min-width:30px;">${pct}%</span>
+                                            </div>
+                                        </td>
+                                        <td>${badge}</td>
+                                    </tr>`;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+
+                // Overall status
+                const anyTriggered = triggers.triggers.some(t => t.triggered);
+                const statusBox = document.getElementById('overall-status');
+                if (anyTriggered) {
+                    statusBox.className = 'status-box triggered';
+                    statusBox.innerHTML = `<div style="font-size:2.5rem;margin-bottom:0.5rem;">🚨</div>TRIGGERED<div style="font-size:0.9rem;font-weight:400;margin-top:6px;">Claim Processing Started</div>`;
+                } else {
+                    statusBox.innerHTML = `<div style="font-size:2.5rem;margin-bottom:0.5rem;">✅</div>SAFE<div style="font-size:0.9rem;font-weight:400;margin-top:6px;">No trigger reached</div>`;
+                }
+
+                document.getElementById('individual-status').innerHTML = triggers.triggers.map(t => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg-light);border-radius:var(--radius-sm);">
+                        <span style="font-weight:600;">${t.name} Trigger</span>
+                        <span class="badge ${t.triggered ? 'badge-danger' : 'badge-success'}">${t.triggered ? '🚨 TRIGGERED' : '✅ Not Triggered'}</span>
+                    </div>`).join('');
+
+                // AI Risk Prediction
+                const riskColor = risk.risk_level === 'High' ? 'var(--danger)' : risk.risk_level === 'Medium' ? 'var(--warning)' : 'var(--success)';
+                const riskBadge = risk.risk_level === 'High' ? 'badge-danger' : risk.risk_level === 'Medium' ? 'badge-warning' : 'badge-success';
+                document.getElementById('ai-prediction').innerHTML = `
+                    <div class="grid-2">
+                        <div>
+                            <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;">Model: Logistic Regression | Updated: ${new Date().toLocaleTimeString()}</p>
+                            <div style="display:grid;gap:14px;">
+                                ${aiBar('🌧️ Rain Risk Tomorrow', risk.rain_risk)}
+                                ${aiBar('🔥 Heat Risk Tomorrow', risk.heat_risk)}
+                                ${aiBar('😷 AQI Risk Tomorrow', risk.aqi_risk)}
+                            </div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;background:var(--bg-light);border-radius:var(--radius);">
+                            <div style="font-size:0.9rem;color:var(--text-light);margin-bottom:8px;">Overall Risk Score</div>
+                            <div style="font-size:3.5rem;font-weight:800;color:${riskColor};">${(risk.risk_probability * 100).toFixed(0)}%</div>
+                            <span class="badge ${riskBadge}" style="font-size:0.88rem;margin-top:10px;padding:6px 18px;">${risk.risk_level} Risk</span>
+                            <div style="margin-top:16px;font-size:0.78rem;color:var(--text-muted);text-align:center;">
+                                <div>Low: 0–30% | Medium: 30–60% | High: 60–100%</div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                // Trigger History
+                if (!history.history || history.history.length === 0) {
+                    document.getElementById('trigger-history').innerHTML = '<p style="color:var(--text-light);">No trigger history for your city yet.</p>';
+                } else {
+                    document.getElementById('trigger-history').innerHTML = `
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>Date</th><th>Trigger Type</th><th>Value</th><th>Threshold</th><th>Claims Paid</th></tr></thead>
+                                <tbody>
+                                    ${history.history.map(h => `
+                                        <tr>
+                                            <td>${h.date}</td>
+                                            <td><span class="badge badge-info">${h.trigger_type}</span></td>
+                                            <td><strong>${h.trigger_value}${h.trigger_type === 'Rain' ? 'mm' : h.trigger_type === 'Heat' ? '°C' : ''}</strong></td>
+                                            <td>${h.threshold}${h.trigger_type === 'Rain' ? 'mm' : h.trigger_type === 'Heat' ? '°C' : ''}</td>
+                                            <td><span class="badge badge-success">${h.claims_paid} paid</span></td>
+                                        </tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>`;
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        function aiBar(label, value) {
+            const cls = value > 60 ? 'danger' : value > 30 ? 'warning' : 'success';
+            return `<div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-size:0.85rem;">${label}</span>
+                    <strong style="font-size:0.85rem;">${value}%</strong>
+                </div>
+                <div class="progress-bar"><div class="fill ${cls}" style="width:${value}%"></div></div>
+            </div>`;
+        }
+
+        loadData();
+        // Refresh every 60s
+        setInterval(loadData, 60000);
+    </script>
+</body>
+</html>

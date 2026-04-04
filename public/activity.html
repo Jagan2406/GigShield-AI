@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Tracker — GigShield AI</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><div class="shield-icon">🛡️</div> GigShield AI</a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+        <div class="navbar-links" id="nav-right">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/activity" class="active">Activity</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard"><span class="menu-icon">🏠</span> Dashboard</a></li>
+                <li><a href="/buy-policy"><span class="menu-icon">🛡️</span> Buy Policy</a></li>
+                <li><a href="/active-policy"><span class="menu-icon">📋</span> Active Policy</a></li>
+                <li><a href="/trigger-monitor"><span class="menu-icon">📡</span> Trigger Monitor</a></li>
+                <li><a href="/claims"><span class="menu-icon">💰</span> Claims & Payout</a></li>
+                <li><a href="/activity" class="active"><span class="menu-icon">📊</span> Activity Tracker</a></li>
+                <li><a href="/location-tracker"><span class="menu-icon">📍</span> Location Tracker</a></li>
+                <li><a href="/terms"><span class="menu-icon">📄</span> Policy Terms</a></li>
+                <li><a href="#" onclick="logout()" style="color:var(--danger)!important;"><span class="menu-icon">🚪</span> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Activity Tracker 📍</h1>
+                <p>GPS-based activity monitoring for fraud prevention and payout eligibility</p>
+            </div>
+
+            <div id="activity-content">
+                <div class="spinner"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        if (!isLoggedIn()) window.location.href = '/login';
+
+        async function loadActivity() {
+            try {
+                const data = await apiGet('/api/activity');
+                const { summary, log, eligibility } = data;
+
+                let html = '';
+
+                // Section 1: Summary Cards
+                html += `
+                    <div class="grid-5 mb-4 fade-in">
+                        <div class="stat-card green">
+                            <div class="stat-icon">📅</div>
+                            <div class="stat-label">Active Days</div>
+                            <div class="stat-value">${summary.active_days} / 7</div>
+                        </div>
+                        <div class="stat-card blue">
+                            <div class="stat-icon">⏱️</div>
+                            <div class="stat-label">Active Hours</div>
+                            <div class="stat-value">${summary.total_hours} hrs</div>
+                        </div>
+                        <div class="stat-card orange">
+                            <div class="stat-icon">🛣️</div>
+                            <div class="stat-label">Distance</div>
+                            <div class="stat-value">${summary.total_distance} km</div>
+                        </div>
+                        <div class="stat-card blue">
+                            <div class="stat-icon">📦</div>
+                            <div class="stat-label">Deliveries</div>
+                            <div class="stat-value">${summary.total_deliveries}</div>
+                        </div>
+                        <div class="stat-card ${summary.status === 'Active' ? 'green' : 'red'}">
+                            <div class="stat-icon">${summary.status === 'Active' ? '✅' : '❌'}</div>
+                            <div class="stat-label">Status</div>
+                            <div class="stat-value">${summary.status}</div>
+                        </div>
+                    </div>`;
+
+                html += `<div class="grid-2 mb-4">`;
+
+                // Section 2: Map View
+                html += `
+                    <div class="card fade-in">
+                        <div class="card-header">🗺️ GPS Activity Map</div>
+                        <div class="card-body" style="padding:0;">
+                            <div class="map-container" style="height:280px;border-radius:0 0 var(--radius) var(--radius);">
+                                <div class="map-overlay">
+                                    <div class="map-icon">📍</div>
+                                    <p style="font-weight:600;">GPS Activity Map</p>
+                                    <p style="font-size:0.82rem;margin-top:4px;">Worker GPS path and delivery zones</p>
+                                    <div style="display:flex;gap:16px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
+                                        <div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;">
+                                            <div style="width:12px;height:12px;border-radius:50%;background:var(--primary);"></div> GPS Path
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;">
+                                            <div style="width:12px;height:12px;border-radius:50%;background:var(--success);"></div> Zone A
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;">
+                                            <div style="width:12px;height:12px;border-radius:50%;background:var(--warning);"></div> Zone B
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- SVG Map Visualization -->
+                                <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.3;" viewBox="0 0 400 280">
+                                    <polyline points="50,200 80,165 120,140 160,125 200,110 250,130 290,105 330,120 370,90" 
+                                        fill="none" stroke="var(--primary)" stroke-width="3" stroke-dasharray="5,3"/>
+                                    <circle cx="50" cy="200" r="8" fill="var(--success)"/>
+                                    <circle cx="160" cy="125" r="6" fill="var(--primary)"/>
+                                    <circle cx="250" cy="130" r="6" fill="var(--warning)"/>
+                                    <circle cx="370" cy="90" r="8" fill="var(--danger)"/>
+                                    <text x="55" y="215" font-size="10" fill="var(--text-dark)">Start</text>
+                                    <text x="375" y="88" font-size="10" fill="var(--text-dark)">Now</text>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>`;
+
+                // Section 3: Eligibility Status
+                html += `
+                    <div class="card fade-in">
+                        <div class="card-header">✅ Payout Eligibility Status</div>
+                        <div class="card-body">
+                            <div style="display:grid;gap:12px;margin-bottom:1.5rem;">
+                                ${eligiRow('Active this week (≥3 days)', eligibility.active_this_week)}
+                                ${eligiRow('Minimum hours completed (≥15 hrs)', eligibility.min_hours_completed)}
+                                ${eligiRow('GPS activity verified', true)}
+                                ${eligiRow('Delivery zone presence', true)}
+                            </div>
+                            <div style="padding:1.25rem;border-radius:var(--radius);text-align:center;background:${eligibility.eligible_for_payout ? 'var(--success-bg)' : 'var(--danger-bg)'};border:1.5px solid ${eligibility.eligible_for_payout ? 'var(--success)' : 'var(--danger)'};">
+                                <div style="font-size:2rem;margin-bottom:6px;">${eligibility.eligible_for_payout ? '✅' : '❌'}</div>
+                                <div style="font-weight:700;font-size:1rem;color:${eligibility.eligible_for_payout ? '#16a34a' : 'var(--danger)'};">
+                                    ${eligibility.eligible_for_payout ? 'Eligible for Payout' : 'Not Eligible for Payout'}
+                                </div>
+                                <div style="font-size:0.8rem;margin-top:4px;color:var(--text-light);">
+                                    ${eligibility.eligible_for_payout ? 'Your activity meets all requirements' : 'Work at least 3 days with 15+ hours to qualify'}
+                                </div>
+                            </div>
+                            <div style="margin-top:1rem;padding:12px;background:var(--bg-light);border-radius:var(--radius);">
+                                <p style="font-size:0.8rem;font-weight:600;color:var(--text-dark);margin-bottom:6px;">Activity Requirements:</p>
+                                <p style="font-size:0.78rem;color:var(--text-light);">• Minimum 3 working days per week</p>
+                                <p style="font-size:0.78rem;color:var(--text-light);">• Minimum 15 hours per week</p>
+                                <p style="font-size:0.78rem;color:var(--text-light);">• GPS presence in delivery zones</p>
+                                <p style="font-size:0.78rem;color:var(--text-light);">• Active login activity on platform</p>
+                            </div>
+                        </div>
+                    </div>`;
+
+                html += `</div>`;
+
+                // Section 4: Activity Log
+                html += `
+                    <div class="card fade-in">
+                        <div class="card-header">📋 Weekly Activity Log</div>
+                        <div class="card-body">
+                            <div class="table-wrap">
+                                <table>
+                                    <thead><tr><th>Date</th><th>Hours Worked</th><th>Distance</th><th>Deliveries</th><th>Zone</th><th>Status</th></tr></thead>
+                                    <tbody>
+                                        ${log.map(a => `<tr>
+                                            <td>${a.date}</td>
+                                            <td>${a.hours_worked > 0 ? a.hours_worked.toFixed(1) + ' hrs' : '—'}</td>
+                                            <td>${a.distance_km > 0 ? a.distance_km.toFixed(1) + ' km' : '—'}</td>
+                                            <td>${a.deliveries > 0 ? a.deliveries : '—'}</td>
+                                            <td>${a.zone}</td>
+                                            <td><span class="badge ${a.status === 'Active' ? 'badge-success' : 'badge-danger'}">${a.status}</span></td>
+                                        </tr>`).join('')}
+                                    </tbody>
+                                    <tfoot style="background:var(--bg-light);">
+                                        <tr>
+                                            <td style="font-weight:600;">Total</td>
+                                            <td style="font-weight:600;">${summary.total_hours} hrs</td>
+                                            <td style="font-weight:600;">${summary.total_distance} km</td>
+                                            <td style="font-weight:600;">${summary.total_deliveries}</td>
+                                            <td>—</td>
+                                            <td><span class="badge ${summary.status === 'Active' ? 'badge-success' : 'badge-danger'}">${summary.status}</span></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>`;
+
+                document.getElementById('activity-content').innerHTML = html;
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        function eligiRow(label, ok) {
+            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-light);border-radius:var(--radius-sm);">
+                <span style="font-size:0.88rem;">${label}</span>
+                <span class="badge ${ok ? 'badge-success' : 'badge-danger'}">${ok ? '✓ Yes' : '✕ No'}</span>
+            </div>`;
+        }
+
+        loadActivity();
+    </script>
+</body>
+</html>

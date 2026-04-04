@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Policy — GigShield AI</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><div class="shield-icon">🛡️</div> GigShield AI</a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+        <div class="navbar-links" id="nav-right">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/active-policy" class="active">My Policy</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard"><span class="menu-icon">🏠</span> Dashboard</a></li>
+                <li><a href="/buy-policy"><span class="menu-icon">🛡️</span> Buy Policy</a></li>
+                <li><a href="/active-policy" class="active"><span class="menu-icon">📋</span> Active Policy</a></li>
+                <li><a href="/trigger-monitor"><span class="menu-icon">📡</span> Trigger Monitor</a></li>
+                <li><a href="/claims"><span class="menu-icon">💰</span> Claims & Payout</a></li>
+                <li><a href="/activity"><span class="menu-icon">📍</span> Activity Tracker</a></li>
+                <li><a href="/terms"><span class="menu-icon">📄</span> Policy Terms</a></li>
+                <li><a href="#" onclick="logout()" style="color:var(--danger)!important;"><span class="menu-icon">🚪</span> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Active Policy 📋</h1>
+                <p>Your current income protection policy details</p>
+            </div>
+
+            <div id="no-policy" style="display:none;">
+                <div class="card" style="text-align:center;padding:3rem;">
+                    <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
+                    <h3>No Active Policy</h3>
+                    <p style="color:var(--text-light);margin:0.5rem 0 1.5rem;">You don't have an active policy right now</p>
+                    <a href="/buy-policy" class="btn btn-primary btn-lg">🛡️ Buy Policy Now</a>
+                </div>
+            </div>
+
+            <div id="policy-content" style="display:none;" class="fade-in">
+                <!-- Policy Status Banner -->
+                <div id="policy-banner" class="mb-3" style="padding:1.25rem 1.5rem;border-radius:var(--radius);background:linear-gradient(135deg,var(--success-bg),rgba(34,197,94,0.05));border:1.5px solid var(--success);display:flex;align-items:center;gap:1rem;">
+                    <div style="font-size:2rem;">✅</div>
+                    <div>
+                        <div style="font-weight:700;color:#16a34a;">Policy Active</div>
+                        <div id="policy-days" style="font-size:0.85rem;color:var(--text-light);"></div>
+                    </div>
+                    <div style="margin-left:auto;" id="policy-id-badge"></div>
+                </div>
+
+                <div class="grid-2 mb-3">
+                    <!-- Policy Details -->
+                    <div class="card">
+                        <div class="card-header">📋 Policy Details</div>
+                        <div class="card-body" id="policy-details"></div>
+                    </div>
+                    <!-- Trigger Conditions -->
+                    <div class="card">
+                        <div class="card-header">🎯 Trigger Conditions</div>
+                        <div class="card-body" id="trigger-conditions"></div>
+                    </div>
+                </div>
+
+                <!-- Coverage -->
+                <div class="grid-2 mb-3">
+                    <div class="card">
+                        <div class="card-header">✅ What Is Covered</div>
+                        <div class="card-body">
+                            <ul style="list-style:none;display:grid;gap:10px;">
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--success);font-weight:700;font-size:1.1rem;">✓</span> Heavy Rain</li>
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--success);font-weight:700;font-size:1.1rem;">✓</span> Flood</li>
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--success);font-weight:700;font-size:1.1rem;">✓</span> Heatwave</li>
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--success);font-weight:700;font-size:1.1rem;">✓</span> High AQI / Air Pollution</li>
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--success);font-weight:700;font-size:1.1rem;">✓</span> Curfew</li>
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--success);font-weight:700;font-size:1.1rem;">✓</span> Zone Closure</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">❌ Not Covered (Exclusions)</div>
+                        <div class="card-body">
+                            <ul style="list-style:none;display:grid;gap:10px;">
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--danger);font-weight:700;font-size:1.1rem;">✕</span> Accidents</li>
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--danger);font-weight:700;font-size:1.1rem;">✕</span> Health Issues / Illness</li>
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--danger);font-weight:700;font-size:1.1rem;">✕</span> Vehicle Repair / Breakdown</li>
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--danger);font-weight:700;font-size:1.1rem;">✕</span> Personal / Voluntary Leave</li>
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--danger);font-weight:700;font-size:1.1rem;">✕</span> Worker Strike</li>
+                                <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--danger);font-weight:700;font-size:1.1rem;">✕</span> Account Suspension</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card" id="download">
+                    <div class="card-header">⚡ Policy Actions</div>
+                    <div class="card-body" style="display:flex;gap:1rem;flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="renewPolicy()">🔄 Renew Policy</button>
+                        <button class="btn btn-warning" onclick="pausePolicy()">⏸️ Pause Policy</button>
+                        <button class="btn btn-danger" onclick="cancelPolicy()">❌ Cancel Policy</button>
+                        <button class="btn btn-outline" onclick="downloadPolicy()">⬇️ Download Policy PDF</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        if (!isLoggedIn()) window.location.href = '/login';
+
+        async function loadPolicy() {
+            try {
+                const data = await apiGet('/api/policy');
+                const policy = data.policy;
+
+                if (!policy) {
+                    document.getElementById('no-policy').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('policy-content').style.display = 'block';
+                document.getElementById('policy-days').textContent = `Valid for ${policy.days_remaining} more days — expires ${formatDate(policy.end_date)}`;
+                document.getElementById('policy-id-badge').innerHTML = `<span class="badge badge-info" style="font-size:0.85rem;">ID: ${policy.id}</span>`;
+
+                document.getElementById('policy-details').innerHTML = `
+                    <div style="display:grid;gap:10px;">
+                        ${row('Policy ID', policy.id)}
+                        ${row('Worker Name', policy.worker_name)}
+                        ${row('City', policy.city)}
+                        ${row('City Tier', `Tier ${policy.city_tier}`)}
+                        ${row('Weekly Premium', formatCurrency(policy.premium))}
+                        ${row('Payout Amount', formatCurrency(policy.payout))}
+                        ${row('Start Date', formatDate(policy.start_date))}
+                        ${row('End Date', formatDate(policy.end_date))}
+                        ${row('Status', `<span class="badge badge-success">${policy.status.toUpperCase()}</span>`)}
+                        ${row('Days Remaining', `<strong>${policy.days_remaining} days</strong>`)}
+                    </div>`;
+
+                document.getElementById('trigger-conditions').innerHTML = `
+                    <div style="display:grid;gap:10px;">
+                        <div style="padding:16px;background:var(--bg-light);border-radius:var(--radius);text-align:center;">
+                            <div style="font-size:1.5rem;margin-bottom:4px;">🌧️</div>
+                            <div style="font-weight:700;font-size:1.3rem;color:var(--primary);">${policy.rain_threshold} mm</div>
+                            <div style="font-size:0.8rem;color:var(--text-light);">Rain Threshold</div>
+                        </div>
+                        <div style="padding:16px;background:var(--bg-light);border-radius:var(--radius);text-align:center;">
+                            <div style="font-size:1.5rem;margin-bottom:4px;">🔥</div>
+                            <div style="font-weight:700;font-size:1.3rem;color:var(--warning);">${policy.temp_threshold}°C</div>
+                            <div style="font-size:0.8rem;color:var(--text-light);">Temperature Threshold</div>
+                        </div>
+                        <div style="padding:16px;background:var(--bg-light);border-radius:var(--radius);text-align:center;">
+                            <div style="font-size:1.5rem;margin-bottom:4px;">😷</div>
+                            <div style="font-weight:700;font-size:1.3rem;color:var(--danger);">${policy.aqi_threshold} AQI</div>
+                            <div style="font-size:0.8rem;color:var(--text-light);">AQI Threshold</div>
+                        </div>
+                    </div>`;
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        function row(label, value) {
+            return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);"><span style="color:var(--text-light);font-size:0.88rem;">${label}</span><span style="font-size:0.88rem;">${value}</span></div>`;
+        }
+
+        async function renewPolicy() {
+            if (!confirm('Renew policy for another 7 days?')) return;
+            try {
+                await apiPost('/api/renew', {});
+                showToast('Policy renewed successfully!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function pausePolicy() {
+            if (!confirm('Pause your active policy?')) return;
+            try {
+                await apiPost('/api/pause', {});
+                showToast('Policy paused', 'info');
+                setTimeout(() => location.reload(), 1000);
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function cancelPolicy() {
+            if (!confirm('Are you sure you want to cancel your policy? This cannot be undone.')) return;
+            try {
+                await apiPost('/api/cancel', {});
+                showToast('Policy cancelled', 'info');
+                setTimeout(() => location.reload(), 1000);
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        function downloadPolicy() {
+            showToast('Policy document download started', 'info');
+        }
+
+        loadPolicy();
+    </script>
+</body>
+</html>

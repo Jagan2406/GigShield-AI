@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — GigShield AI</title>
+    <meta name="description" content="Register as a gig worker on GigShield AI and get verified for income insurance protection.">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><div class="shield-icon">🛡️</div> GigShield AI</a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+        <div class="navbar-links" id="nav-right">
+            <a href="/">Home</a>
+            <a href="/login">Login</a>
+            <a href="/register" class="btn btn-primary btn-sm active">Register</a>
+        </div>
+    </nav>
+
+    <div style="background:var(--bg-light);min-height:calc(100vh - 70px);padding:2rem;">
+        <div class="container" style="max-width:740px;">
+            <!-- Registration Form -->
+            <div id="reg-form-section">
+                <div style="text-align:center;margin-bottom:2rem;" class="fade-in">
+                    <h1 style="font-size:1.8rem;font-weight:700;">Join GigShield AI</h1>
+                    <p style="color:var(--text-light);">Register & verify your gig worker profile to get income protection</p>
+                </div>
+
+                <div class="card fade-in" style="border-radius:var(--radius-lg);">
+                    <div class="card-body" style="padding:2rem;">
+                        <form id="registration-form" enctype="multipart/form-data">
+                            <!-- Section 1: Personal Details -->
+                            <div class="form-section-title">👤 Personal Details</div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" name="full_name" id="full_name" placeholder="Enter your full name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Phone Number *</label>
+                                    <input type="tel" class="form-control" name="phone" id="phone" placeholder="10-digit mobile number" required pattern="[0-9]{10}">
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Email *</label>
+                                    <input type="email" class="form-control" name="email" id="email" placeholder="your@email.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Password *</label>
+                                    <input type="password" class="form-control" name="password" id="password" placeholder="Create a password" required minlength="6">
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">City *</label>
+                                    <select class="form-control" name="city" id="city" required>
+                                        <option value="">Select City</option>
+                                        <option value="Mumbai">Mumbai</option>
+                                        <option value="Delhi">Delhi</option>
+                                        <option value="Bangalore">Bangalore</option>
+                                        <option value="Chennai">Chennai</option>
+                                        <option value="Hyderabad">Hyderabad</option>
+                                        <option value="Pune">Pune</option>
+                                        <option value="Kolkata">Kolkata</option>
+                                        <option value="Ahmedabad">Ahmedabad</option>
+                                        <option value="Jaipur">Jaipur</option>
+                                        <option value="Lucknow">Lucknow</option>
+                                        <option value="Patna">Patna</option>
+                                        <option value="Bhopal">Bhopal</option>
+                                        <option value="Nagpur">Nagpur</option>
+                                        <option value="Indore">Indore</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Area / Zone</label>
+                                    <input type="text" class="form-control" name="area" id="area" placeholder="Your delivery area">
+                                </div>
+                            </div>
+
+                            <!-- Section 2: Work Details -->
+                            <div class="form-section-title">🛵 Work Details</div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Platform *</label>
+                                    <select class="form-control" name="platform" id="platform" required>
+                                        <option value="">Select Platform</option>
+                                        <option value="Zomato">Zomato</option>
+                                        <option value="Swiggy">Swiggy</option>
+                                        <option value="Zepto">Zepto</option>
+                                        <option value="Dunzo">Dunzo</option>
+                                        <option value="Amazon">Amazon</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Vehicle Type</label>
+                                    <select class="form-control" name="vehicle_type" id="vehicle_type">
+                                        <option value="Bike">Bike</option>
+                                        <option value="Scooter">Scooter</option>
+                                        <option value="Cycle">Cycle</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid-3">
+                                <div class="form-group">
+                                    <label class="form-label">Avg Weekly Income (₹)</label>
+                                    <input type="number" class="form-control" name="avg_weekly_income" id="avg_weekly_income" placeholder="e.g. 3000" value="3000">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Working Days/Week</label>
+                                    <select class="form-control" name="working_days" id="working_days">
+                                        <option value="5">5 days</option>
+                                        <option value="6" selected>6 days</option>
+                                        <option value="7">7 days</option>
+                                        <option value="4">4 days</option>
+                                        <option value="3">3 days</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Working Hours/Day</label>
+                                    <select class="form-control" name="working_hours" id="working_hours">
+                                        <option value="6">6 hours</option>
+                                        <option value="7">7 hours</option>
+                                        <option value="8" selected>8 hours</option>
+                                        <option value="9">9 hours</option>
+                                        <option value="10">10 hours</option>
+                                        <option value="12">12 hours</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Section 3: Payment Details -->
+                            <div class="form-section-title">💳 Payment Details</div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">UPI ID</label>
+                                    <input type="text" class="form-control" name="upi_id" id="upi_id" placeholder="yourname@upi">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Bank Name</label>
+                                    <input type="text" class="form-control" name="bank_name" id="bank_name" placeholder="e.g. SBI">
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Account Number</label>
+                                    <input type="text" class="form-control" name="account_number" id="account_number" placeholder="Bank account number">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">IFSC Code</label>
+                                    <input type="text" class="form-control" name="ifsc_code" id="ifsc_code" placeholder="e.g. SBIN0001234">
+                                </div>
+                            </div>
+
+                            <!-- Section 4: Verification Uploads -->
+                            <div class="form-section-title">📄 Verification Documents</div>
+                            <div class="grid-3">
+                                <div class="form-group">
+                                    <label class="form-label">ID Proof</label>
+                                    <div class="form-file">
+                                        <input type="file" name="id_proof" id="id_proof" accept="image/*,.pdf">
+                                        <div class="file-icon">🪪</div>
+                                        <div class="file-text">Upload Aadhaar / PAN</div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Platform Profile</label>
+                                    <div class="form-file">
+                                        <input type="file" name="platform_screenshot" id="platform_screenshot" accept="image/*">
+                                        <div class="file-icon">📱</div>
+                                        <div class="file-text">Platform Screenshot</div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Earnings Proof</label>
+                                    <div class="form-file">
+                                        <input type="file" name="earnings_screenshot" id="earnings_screenshot" accept="image/*">
+                                        <div class="file-icon">💰</div>
+                                        <div class="file-text">Last Week Earnings</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submit-btn" style="flex:1;">🚀 Submit Registration</button>
+                                <a href="/" class="btn btn-outline btn-lg">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Result (hidden initially) -->
+            <div id="verification-result" style="display:none;">
+                <div class="verification-result">
+                    <div style="font-size:3rem;margin-bottom:1rem;">✅</div>
+                    <h2>Verification Successful</h2>
+                    <div id="vr-details" style="margin:1.5rem 0;"></div>
+                    <a href="/dashboard" class="btn btn-primary btn-lg">Go to Dashboard →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        document.getElementById('registration-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+
+            try {
+                const formData = new FormData(e.target);
+                const res = await fetch('/api/register', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error);
+
+                setToken(data.token);
+                setUser(data.user);
+
+                // Show verification result
+                document.getElementById('reg-form-section').style.display = 'none';
+                const vr = document.getElementById('verification-result');
+                vr.style.display = 'block';
+
+                const v = data.verification;
+                document.getElementById('vr-details').innerHTML = `
+                    <div class="vr-item"><span>Status</span><span class="badge badge-success">${v.status}</span></div>
+                    <div class="vr-item"><span>City Tier</span><span style="font-weight:600;">${v.city_tier}</span></div>
+                    <div class="vr-item"><span>City Type</span><span>${v.city_tier_label}</span></div>
+                    <div class="vr-item"><span>Risk Score</span><span class="badge ${v.risk_score === 'High' ? 'badge-danger' : v.risk_score === 'Medium' ? 'badge-warning' : 'badge-success'}">${v.risk_score}</span></div>
+                    <div class="vr-item"><span>Risk Probability</span><span>${(v.risk_probability * 100).toFixed(0)}%</span></div>
+                    <div class="vr-item" style="border-bottom:none;margin-top:0.5rem;"><span></span><span style="color:var(--success);font-weight:600;">${v.message}</span></div>
+                `;
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.textContent = '🚀 Submit Registration';
+                btn.disabled = false;
+            }
+        });
+
+        // File upload labels
+        document.querySelectorAll('.form-file input[type=file]').forEach(input => {
+            input.addEventListener('change', () => {
+                const text = input.closest('.form-file').querySelector('.file-text');
+                text.textContent = input.files[0]?.name || 'Choose file';
+                text.style.color = 'var(--success)';
+            });
+        });
+    </script>
+</body>
+</html>
