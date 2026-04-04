@@ -1,85 +1,382 @@
-# 🚀 GigShield AI
+# GigShield AI
 
-**AI-Powered Parametric Income Protection for Gig Delivery Workers**
-**Watch our Phase 1 Pitch & Demo Video Here  https://youtu.be/WuMDSCI0Moc**
+## AI-Powered Parametric Income Protection for Gig Workers
 
-# 🛡️ GigShield AI: The Parametric Defense Protocol
+GigShield AI is a parametric micro-insurance platform designed to protect gig delivery workers such as Zomato, Swiggy, Zepto, Dunzo, and Amazon delivery partners from income loss caused by extreme environmental conditions like heavy rain, heatwaves, and high air pollution.
 
-> **Deep-Tech Parametric Income Protection for the Logistics & Gig Economy**  
-> An autonomous, AI-powered weather derivative platform protecting Zomato, Swiggy, Zepto, and independent delivery partners from systemic, unforeseen climate disruptions.
+Unlike traditional insurance, GigShield AI automatically triggers payouts when predefined environmental thresholds are crossed — no claims, no paperwork, and no delays.
 
 ---
 
-## 🚀 Executive Summary
-**GigShield AI** is not a standard CRUD application; it is an autonomous risk-transfer engine. We have built an end-to-end parametric micro-insurance platform tailored for the Global South's freelance delivery workforce. By removing human claim adjusters and replacing them with realtime algorithmic environment tracking (Weather & Air Quality nodes), we guarantee instant, trustless payouts directly via UPI the moment a climate threshold is breached.
+# Default Admin Login
 
-## 🌧️ The Core Problem
-India's 15 million+ gig workers operate without a financial safety net. When systemic environmental anomalies occur (floods, 45°C heatwaves, 450+ AQI pollution blocks), riders face an impossible paradox: **Risk irreversible health damage/death, or lose your daily survival wage.**
+| Email                                           | Password |
+| ----------------------------------------------- | -------- |
+| [admin@gigshield.ai](mailto:admin@gigshield.ai) | admin123 |
 
-Traditional indemnity insurance fundamentally fails this demographic:
-*   Requires massive paperwork.
-*   Takes weeks to process claims.
-*   Geared strictly towards asset protection (accidents/health) rather than **preventative income protection**.
-
-## ⚡ The Parametric Insurance Paradigm
-Instead of indemnifying a specific loss (e.g., proving you got sick), GigShield uses **Parametrics**. 
-A parametric policy pays out based entirely on an *objective trigger event*. If Node X (OpenWeather API) reports that City Y has breached >150mm of rainfall in 24 hours, the smart engine cross-references the active policy ledger and instantly disperses funds. 
-
-**Advantages:**
-1. **Zero Moral Hazard:** The worker cannot cause the rain to fall. Therefore, claims cannot be entirely fabricated.
-2. **Instant Settlement:** No adjusters wait at a desk. Settlement time moves from 30 days to 2 seconds.
-3. **Hyper-Low Overhead:** Fully automated architecture enables us to drive premiums down to micro-levels (₹30 weekly).
+Use this account to access the Admin Dashboard, simulate triggers, monitor loss ratio, and manage the system.
 
 ---
 
-## 🔬 Deep Dive: System Architecture & Algorithms
+# The Problem
 
-GigShield AI integrates three distinctly powerful pipelines to manage risk safely.
+Gig delivery workers work in outdoor conditions and are highly affected by environmental disruptions such as:
 
-### 4.1 Actuarial Engineering & Loss Ratio Constraints
-Insurance fails if the capital pool runs dry. GigShield implements a live actuarial dashboard that monitors the **Loss Ratio** `(Claims Paid + Adjustment Expenses) / Earned Premium`.
-*   If the Loss Ratio spirals > 80%, the system utilizes an automated algorithm to suggest higher baseline premiums or halts new enrollments dynamically.
-*   We simulate heavy-tail weather events (like monsoon floods) directly via the Admin panel to stress-test our risk reserves.
+* Heavy Rain
+* Extreme Heat (45°C+)
+* Floods
+* High AQI / Air Pollution
 
-### 4.2 Isolation Forest Fraud Detection
-Even with parametric data, fraud vectors exist (e.g., workers faking their GPS location using spoofers to jump into a city currently experiencing a payout event). 
-*   **The AI Layer:** We use simulated `Isolation Forest` anomaly detection algorithms. The system analyzes the worker's historical delivery vector (Distance Traveled, Time Online, Platform utilized).
-*   If a worker suddenly spawns in a "Trigger Zone" with 0 surrounding active delivery hours, the algorithm flags a high **Fraud Score** (>0.70) and systematically suspends the payout queue for manual Admin review.
+When these events occur, workers cannot complete deliveries and may lose 20–30% of their weekly income.
+Currently, there is no structured income protection system for gig workers.
 
-### 4.3 Dynamic K-Means Pricing & Risk Tiers
-Not all cities flood equally. Delhi's drainage handles 50mm differently than Mumbai's.
-*   We classify cities into **Tiers (1, 2, 3)** using dynamic modeling thresholds.
-*   A user logging in from a Tier 1 (High Risk) zone faces differing threshold limits. For example, Tier 1 is >300mm to trigger a payout, whereas Tier 3 triggers at >80mm. 
+Traditional insurance does not work because:
 
-### 4.4 Micro-Geofencing & GPS Verification
-To enforce strict policy validity, we implemented a simulated **Proof-of-Active-Shift** mapping console.
-Workers must log physical movement via the `Location Tracker` interface. GPS data generates a heatmap trail, verifying that a rider was genuinely exposed to the hostile climate event rather than purchasing a policy while already safe at home.
+* Claims take weeks to process
+* Requires paperwork
+* Not designed for daily wage workers
+* Covers accidents/health, not income loss
+
+This creates a major financial protection gap.
 
 ---
 
-## ⚙️ The Automation Matrix: Claim Lifecycle
+# The Solution — Parametric Insurance
 
-1. **Policy Purchase:** Worker inputs UPI and validates location. The system executes a `POST /api/buy-policy`, logging a 7-day Unix timestamp expiration.
-2. **Cron Monitoring:** The backend routinely polls OpenWeather / AQI Data nodes.
-3. **Threshold Breach:** A 46°C heatwave is registered in City A.
-4. **Ledger Query:** The database selects all active policies localized to `City A` where `policy.status == 'Active'`.
-5. **Fraud Sieve:** Selected workers are passed through the anomaly detection check.
-6. **Disbursement:** Valid nodes are instantly pushed to the `payout` array, finalizing the claim pipeline with a definitive success receipt.
+GigShield AI uses a Parametric Insurance Model.
+
+Parametric insurance pays money when a trigger event happens, instead of checking actual loss.
+
+Example:
+
+* If rainfall > threshold → payout triggered
+* If temperature > threshold → payout triggered
+* If AQI > threshold → payout triggered
+
+This allows:
+
+* Instant payouts
+* No claim process
+* Fully automated system
+* Low-cost micro-premium model (₹30/week)
 
 ---
 
-## 🗄️ Database Schema & Ledger Design
+# System Overview
 
-Our NoSQL architecture natively supports unstructured location and multi-tiered thresholds. Key schemas include:
+GigShield AI consists of three main components:
 
-**`Worker Schema`**
-```json
-{
-  "_id": "uuid",
-  "full_name": "string",
-  "city": "string",
-  "city_tier": "int",
-  "fraud_score": "float",
-  "gps_history": [{ "lat": 17.3, "lng": 78.4, "timestamp": "ISO" }]
-}
+| Component    | Technology              |
+| ------------ | ----------------------- |
+| Frontend     | HTML, CSS, JavaScript   |
+| Backend      | Node.js, Express        |
+| AI Service   | Python (Scikit-learn)   |
+| Database     | MongoDB                 |
+| Maps         | Leaflet + OpenStreetMap |
+| Weather Data | OpenWeather API         |
+| Automation   | node-cron               |
 
+---
+
+# Project Structure
+
+```
+GigShield-AI/
+│
+├── backend/
+│   ├── server.js
+│   ├── routes/
+│   ├── models/
+│   ├── controllers/
+│   ├── python_service/
+│   │   ├── app.py
+│   │   ├── risk_model.py
+│   │   ├── fraud_model.py
+│   │   └── requirements.txt
+│   ├── .env
+│   └── package.json
+│
+├── frontend/
+│   ├── index.html
+│   ├── dashboard.html
+│   ├── admin.html
+│   ├── css/
+│   ├── js/
+│   └── images/
+│
+└── README.md
+```
+
+---
+
+# How to Run the Project Locally
+
+To run the GigShield AI project locally, you need to start:
+
+1. Node.js Backend
+2. Python AI Service
+3. Frontend (served by backend)
+
+Follow the steps below carefully.
+
+---
+
+# 1. Prerequisites
+
+Make sure you have the following installed:
+
+| Software | Version                |
+| -------- | ---------------------- |
+| Node.js  | v16 or higher          |
+| Python   | v3.8 or higher         |
+| npm      | Comes with Node.js     |
+| pip      | Comes with Python      |
+| MongoDB  | Local or MongoDB Atlas |
+
+---
+
+# 2. Setup and Run the Backend (Node.js)
+
+The backend manages:
+
+* Database
+* Authentication
+* Policies
+* Claims
+* Weather triggers
+* Serves frontend
+
+Step 1 — Go to backend folder
+
+```bash
+cd backend
+```
+
+Step 2 — Install dependencies
+
+```bash
+npm install
+```
+
+Step 3 — Environment Variables
+
+Create a `.env` file inside `backend/`:
+
+```
+PORT=3000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
+OPENWEATHER_API_KEY=your_openweather_api_key
+AI_SERVICE_URL=http://localhost:5000
+```
+
+Step 4 — Start Backend Server
+
+```bash
+npm start
+```
+
+Backend will start at:
+
+```
+http://localhost:3000
+```
+
+Frontend is automatically served by backend.
+
+---
+
+# 3. Setup and Run the AI Service (Python)
+
+The AI service handles:
+
+* Risk Scoring
+* Fraud Detection
+* Premium Prediction
+
+Step 1 — Open new terminal
+
+```bash
+cd backend/python_service
+```
+
+Step 2 — Install Python dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Step 3 — Start AI Service
+
+```bash
+python app.py
+```
+
+AI service will run at:
+
+```
+http://localhost:5000
+```
+
+---
+
+# 4. Access the Application
+
+Once both backend and AI service are running:
+
+Open browser:
+
+```
+http://localhost:3000
+```
+
+You can now:
+
+* Register as Worker
+* Login as Worker
+* Login as Admin
+* Buy Policy
+* Track Weather Risk
+* Simulate Triggers (Admin)
+* View Loss Ratio Dashboard
+
+---
+
+# Summary of Ports
+
+| Service       | URL                       | Description       |
+| ------------- | ------------------------- | ----------------- |
+| Main Web App  | http://localhost:3000     | Frontend          |
+| Backend API   | http://localhost:3000/api | Node.js Backend   |
+| AI ML Service | http://localhost:5000     | Python AI Service |
+
+---
+
+# How Automation Works
+
+The system runs an automated job using node-cron.
+
+Every hour:
+
+1. Fetch Weather Data
+2. Fetch AQI Data
+3. Check Trigger Conditions
+4. Find Active Policies
+5. Run Fraud Detection
+6. Trigger Payout
+7. Update Loss Ratio
+8. Update Dashboard
+
+This makes the system fully automated.
+
+---
+
+# Core System Models
+
+## Parametric Trigger Model
+
+| Trigger | Condition                 |
+| ------- | ------------------------- |
+| Rain    | Rainfall > Tier Threshold |
+| Heat    | Temperature > 43°C        |
+| AQI     | AQI > 300                 |
+
+| City Tier | Rain Trigger |
+| --------- | ------------ |
+| Tier 1    | 300 mm       |
+| Tier 2    | 150 mm       |
+| Tier 3    | 80 mm        |
+
+---
+
+## Risk Score Model
+
+| Risk Score | Risk Level |
+| ---------- | ---------- |
+| < 0.4      | Low        |
+| 0.4 – 0.7  | Medium     |
+| > 0.7      | High       |
+
+Used for:
+
+* Premium pricing
+* Risk alerts
+* Trigger prediction
+
+---
+
+## Fraud Detection Model
+
+Fraud indicators:
+
+* Low working hours
+* Low distance travelled
+* No GPS activity
+* Claim made while inactive
+
+Model Used:
+Isolation Forest Algorithm
+
+If Fraud Score > 0.7 → Claim flagged.
+
+---
+
+## Actuarial Model — Loss Ratio
+
+Loss Ratio = Claims Paid / Premium Collected
+
+| Loss Ratio | Action            |
+| ---------- | ----------------- |
+| < 0.6      | Sustainable       |
+| 0.6 – 0.8  | Monitor           |
+| > 0.8      | Increase Premium  |
+| > 1.0      | Stop New Policies |
+
+---
+
+# What This Project Demonstrates
+
+This project demonstrates real-world concepts from:
+
+* Insurance Technology (InsurTech)
+* Parametric Insurance
+* Risk Modeling
+* Actuarial Science
+* Fraud Detection using Machine Learning
+* Full Stack Development
+* Real-time Data Systems
+* Automation Systems
+
+---
+
+# Challenges Faced
+
+* Designing fair environmental trigger thresholds
+* Preventing fraud using GPS data
+* Maintaining sustainable loss ratio
+* Integrating Weather APIs + GPS + AI models
+* Database migration (SQLite to MongoDB)
+* Designing system like real insurance product
+
+---
+
+# Conclusion
+
+GigShield AI is a Parametric Micro-Insurance Platform designed for gig workers that combines:
+
+* AI/ML
+* Weather Data
+* GPS Tracking
+* Risk Modeling
+* Actuarial Pricing
+* Automated Payout System
+
+to provide automatic income protection during environmental disruptions.
+
+This project shows how technology can be used to build financial protection systems for the gig economy.
+
+---
+
+# Contributors
+
+Built during AI Hackathon to solve a real-world gig economy problem.
