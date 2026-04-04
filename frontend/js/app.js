@@ -79,14 +79,14 @@ function updateNavbar() {
         const user = getUser();
         if (user?.is_admin) {
             navRight.innerHTML = `
-                <a href="/admin" class="active">Admin Panel</a>
+                <a href="/admin.html" class="active">Admin Panel</a>
                 <a href="#" onclick="logout()" class="btn btn-outline btn-sm">Logout</a>
             `;
         } else {
             navRight.innerHTML = `
-                <a href="/dashboard">Dashboard</a>
-                <a href="/buy-policy">Buy Policy</a>
-                <a href="/claims">Claims</a>
+               <a href="/dashboard.html">Dashboard</a>
+               <a href="/buy-policy.html">Buy Policy</a>
+               <a href="/claims.html">Claims</a>
                 <a href="#" onclick="logout()" class="btn btn-outline btn-sm">Logout</a>
             `;
         }
