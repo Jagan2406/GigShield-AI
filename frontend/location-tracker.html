@@ -78,9 +78,9 @@
         <a href="/" class="navbar-brand"><div class="shield-icon">🛡️</div> GigShield AI</a>
         <button class="hamburger"><span></span><span></span><span></span></button>
         <div class="navbar-links" id="nav-right">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/activity">Activity</a>
-            <a href="/location-tracker" class="active">Location</a>
+            <a href="/dashboard.html">Dashboard</a>
+            <a href="/activity.html">Activity</a>
+            <a href="/location-tracker.html" class="active">Location</a>
             <a href="#" onclick="logout()">Logout</a>
         </div>
     </nav>
@@ -88,21 +88,21 @@
     <div class="dashboard-layout">
         <aside class="sidebar" id="sidebar-worker">
             <ul class="sidebar-menu">
-                <li><a href="/dashboard"><span class="menu-icon">🏠</span> Dashboard</a></li>
-                <li><a href="/buy-policy"><span class="menu-icon">🛡️</span> Buy Policy</a></li>
-                <li><a href="/active-policy"><span class="menu-icon">📋</span> Active Policy</a></li>
-                <li><a href="/trigger-monitor"><span class="menu-icon">📡</span> Trigger Monitor</a></li>
-                <li><a href="/claims"><span class="menu-icon">💰</span> Claims & Payout</a></li>
-                <li><a href="/activity"><span class="menu-icon">📊</span> Activity Tracker</a></li>
-                <li><a href="/location-tracker" class="active"><span class="menu-icon">📍</span> Location Tracker</a></li>
-                <li><a href="/terms"><span class="menu-icon">📄</span> Policy Terms</a></li>
+                <li><a href="/dashboard.html"><span class="menu-icon">🏠</span> Dashboard</a></li>
+                <li><a href="/buy-policy.html"><span class="menu-icon">🛡️</span> Buy Policy</a></li>
+                <li><a href="/active-policy.html"><span class="menu-icon">📋</span> Active Policy</a></li>
+                <li><a href="/trigger-monitor.html"><span class="menu-icon">📡</span> Trigger Monitor</a></li>
+                <li><a href="/claims.html"><span class="menu-icon">💰</span> Claims & Payout</a></li>
+                <li><a href="/activity.html"><span class="menu-icon">📊</span> Activity Tracker</a></li>
+                <li><a href="/location-tracker.html" class="active"><span class="menu-icon">📍</span> Location Tracker</a></li>
+                <li><a href="/terms.html"><span class="menu-icon">📄</span> Policy Terms</a></li>
                 <li><a href="#" onclick="logout()" style="color:var(--danger)!important;"><span class="menu-icon">🚪</span> Logout</a></li>
             </ul>
         </aside>
         <aside class="sidebar" id="sidebar-admin" style="display:none;">
             <ul class="sidebar-menu">
-                <li><a href="/admin"><span class="menu-icon">📊</span> Admin Dashboard</a></li>
-                <li><a href="/location-tracker" class="active"><span class="menu-icon">📍</span> Worker Locations</a></li>
+                <li><a href="/admin.html"><span class="menu-icon">📊</span> Admin Dashboard</a></li>
+                <li><a href="/location-tracker.html" class="active"><span class="menu-icon">📍</span> Worker Locations</a></li>
                 <li><a href="#" onclick="logout()" style="color:var(--danger)!important;"><span class="menu-icon">🚪</span> Logout</a></li>
             </ul>
         </aside>
@@ -113,7 +113,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="/js/app.js"></script>
     <script>
-    if (!isLoggedIn()) window.location.href = '/login';
+    if (!isLoggedIn()) window.location.href = '/login.html';
 
     const ROLE = isAdmin() ? 'admin' : 'worker';
     let map, currentMarker, pathLine, trailMarkers = [];
