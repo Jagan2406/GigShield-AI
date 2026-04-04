@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — GigShield AI</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .admin-section {
+            margin-bottom: 2rem;
+        }
+
+        .editable-input {
+            width: 80px;
+            padding: 4px 8px;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <div class="shield-icon">🛡️</div> GigShield AI
+        </a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+        <div class="navbar-links" id="nav-right">
+            <a href="/admin" class="active">Admin Panel</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div
+                style="padding:1rem 1.5rem;font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">
+                Admin Control</div>
+            <ul class="sidebar-menu">
+                <li><a href="#overview" class="active"><span class="menu-icon">📊</span> System Overview</a></li>
+                <li><a href="#cities"><span class="menu-icon">🏙️</span> City Risk Mgmt</a></li>
+                <li><a href="#triggers"><span class="menu-icon">🎯</span> Trigger Control</a></li>
+                <li><a href="#fraud"><span class="menu-icon">🔍</span> Fraud Monitor</a></li>
+                <li><a href="#loss"><span class="menu-icon">📈</span> Loss Ratio</a></li>
+                <li><a href="#simulate"><span class="menu-icon">⚡</span> Simulate Trigger</a></li>
+                <li><a href="#workers"><span class="menu-icon">👷</span> Workers</a></li>
+                <li><a href="/location-tracker"><span class="menu-icon">📍</span> Worker Locations</a></li>
+                <li><a href="#" onclick="logout()" style="color:var(--danger)!important;"><span
+                            class="menu-icon">🚪</span> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <h1>Admin Control Panel 🛡️</h1>
+                    <p>Insurance actuary, risk management, fraud control, and trigger simulation</p>
+                </div>
+                <button class="btn btn-primary" onclick="refreshDashboard()" id="master-refresh-btn">🔄 Refresh
+                    Dashboard</button>
+            </div>
+
+            <!-- Section 1: System Overview -->
+            <div class="admin-section" id="overview">
+                <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:1rem;color:var(--primary-dark);">📊 System
+                    Overview</h2>
+                <div class="grid-3 mb-3" id="overview-cards">
+                    <div class="spinner"></div>
+                </div>
+                <div class="grid-3" id="overview-cards-2"></div>
+            </div>
+
+            <!-- Section 2: Loss Ratio Control -->
+            <div class="admin-section" id="loss">
+                <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:1rem;color:var(--primary-dark);">📈 Loss Ratio
+                    Control (Actuarial Panel)</h2>
+                <div class="card">
+                    <div class="card-body" id="loss-panel">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: City Risk Management -->
+            <div class="admin-section" id="cities">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h2 style="font-size:1.1rem;font-weight:700;color:var(--primary-dark);">🏙️ City Risk Management
+                    </h2>
+                    <button class="btn btn-primary btn-sm" onclick="loadCities()">🔄 Refresh</button>
+                </div>
+                <div class="card">
+                    <div class="card-body" id="cities-table">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Trigger Control Panel -->
+            <div class="admin-section" id="triggers">
+                <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:1rem;color:var(--primary-dark);">🎯 Trigger
+                    Control Panel</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1rem;">Default trigger
+                            thresholds by city tier. Update city-specific thresholds in City Management above.</p>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Trigger</th>
+                                        <th>Tier 1 (Metro)</th>
+                                        <th>Tier 2 (Medium)</th>
+                                        <th>Tier 3 (Small)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>🌧️ Rain (mm)</td>
+                                        <td><span class="badge badge-info">300 mm</span></td>
+                                        <td><span class="badge badge-warning">150 mm</span></td>
+                                        <td><span class="badge badge-success">80 mm</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>🔥 Temperature (°C)</td>
+                                        <td><span class="badge badge-info">45°C</span></td>
+                                        <td><span class="badge badge-warning">43°C</span></td>
+                                        <td><span class="badge badge-success">41°C</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>😷 AQI</td>
+                                        <td><span class="badge badge-info">450</span></td>
+                                        <td><span class="badge badge-warning">350</span></td>
+                                        <td><span class="badge badge-success">300</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Fraud Monitoring -->
+            <div class="admin-section" id="fraud">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h2 style="font-size:1.1rem;font-weight:700;color:var(--primary-dark);">🔍 Fraud Monitoring —
+                        Isolation Forest</h2>
+                    <button class="btn btn-outline btn-sm" onclick="loadFraud()">🔄 Refresh</button>
+                </div>
+                <div class="card">
+                    <div class="card-body" id="fraud-table">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Simulate Trigger -->
+            <div class="admin-section" id="simulate">
+                <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:1rem;color:var(--primary-dark);">⚡ Simulate
+                    Weather Trigger</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1.5rem;">Simulate an
+                            environmental trigger for a city to test the automatic claim pipeline.</p>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label class="form-label">City</label>
+                                <select class="form-control" id="sim-city">
+                                    <option value="Hyderabad">Hyderabad</option>
+                                    <option value="Mumbai">Mumbai</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Bangalore">Bangalore</option>
+                                    <option value="Chennai">Chennai</option>
+                                    <option value="Patna">Patna</option>
+                                    <option value="Lucknow">Lucknow</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Trigger Type</label>
+                                <select class="form-control" id="sim-type">
+                                    <option value="Rain">🌧️ Rain</option>
+                                    <option value="Heat">🔥 Heat</option>
+                                    <option value="AQI">😷 AQI</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Value</label>
+                                <input type="number" class="form-control" id="sim-value" placeholder="e.g. 200"
+                                    value="200">
+                            </div>
+                        </div>
+                        <button class="btn btn-danger" onclick="simulateTrigger()" id="sim-btn">⚡ Simulate Trigger &
+                            Process Claims</button>
+                        <div id="sim-result" style="margin-top:1rem;display:none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 7: Workers -->
+            <div class="admin-section" id="workers">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h2 style="font-size:1.1rem;font-weight:700;color:var(--primary-dark);">👷 Registered Workers</h2>
+                    <button class="btn btn-outline btn-sm" onclick="loadWorkers()">🔄 Refresh</button>
+                </div>
+                <div class="card">
+                    <div class="card-body" id="workers-table">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        if (!isLoggedIn() || !isAdmin()) {
+            window.location.href = '/login';
+        }
+
+        // Load all data
+        async function loadOverview() {
+            try {
+                const data = await apiGet('/api/admin/overview');
+                document.getElementById('overview-cards').innerHTML = `
+                    <div class="stat-card blue">
+                        <div class="stat-icon">👷</div>
+                        <div class="stat-label">Total Workers</div>
+                        <div class="stat-value">${data.total_workers.toLocaleString()}</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-icon">🛡️</div>
+                        <div class="stat-label">Active Policies</div>
+                        <div class="stat-value">${data.active_policies.toLocaleString()}</div>
+                    </div>
+                    <div class="stat-card orange">
+                        <div class="stat-icon">💸</div>
+                        <div class="stat-label">Premium Collected</div>
+                        <div class="stat-value">${formatCurrency(data.total_premium)}</div>
+                    </div>`;
+                document.getElementById('overview-cards-2').innerHTML = `
+                    <div class="stat-card red">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-label">Total Payout</div>
+                        <div class="stat-value">${formatCurrency(data.total_payout)}</div>
+                    </div>
+                    <div class="stat-card ${data.loss_ratio <= 0.7 ? 'green' : data.loss_ratio <= 0.8 ? 'orange' : 'red'}">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-label">Loss Ratio</div>
+                        <div class="stat-value">${data.loss_ratio.toFixed(2)}</div>
+                    </div>
+                    <div class="stat-card ${data.fraud_cases === 0 ? 'green' : 'red'}">
+                        <div class="stat-icon">🔍</div>
+                        <div class="stat-label">Fraud Cases</div>
+                        <div class="stat-value">${data.fraud_cases}</div>
+                    </div>`;
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function loadLossRatio() {
+            try {
+                const data = await apiGet('/api/admin/loss-ratio');
+                const lr = data.loss_ratio;
+                const pct = Math.min(100, Math.round(lr * 100));
+                const cls = lr < 0.6 ? 'success' : lr <= 0.8 ? 'warning' : 'danger';
+                document.getElementById('loss-panel').innerHTML = `
+                    <div class="grid-2">
+                        <div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                                <span style="font-weight:600;">Loss Ratio</span>
+                                <strong style="color:var(--${cls === 'danger' ? 'danger' : cls === 'warning' ? 'warning' : 'success'});">${lr.toFixed(3)}</strong>
+                            </div>
+                            <div class="progress-bar" style="height:16px;margin-bottom:16px;">
+                                <div class="fill ${cls}" style="width:${pct}%"></div>
+                            </div>
+                            <div style="display:grid;gap:8px;font-size:0.82rem;">
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-light);">
+                                    <span style="color:var(--text-light);">Total Premium</span>
+                                    <strong>${formatCurrency(data.total_premium)}</strong>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-light);">
+                                    <span style="color:var(--text-light);">Total Payout</span>
+                                    <strong>${formatCurrency(data.total_payout)}</strong>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-light);">
+                                    <span style="color:var(--text-light);">Current Premium</span>
+                                    <strong>${formatCurrency(data.current_premium)}</strong>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-light);">
+                                    <span style="color:var(--text-light);">Suggested Premium</span>
+                                    <strong style="color:var(--warning);">${formatCurrency(data.suggested_premium)}</strong>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-light);">
+                                    <span style="color:var(--text-light);">Status</span>
+                                    <span class="badge badge-${cls === 'danger' ? 'danger' : cls === 'warning' ? 'warning' : 'success'}">${data.status}</span>
+                                </div>
+                                <div style="padding:6px 0;">
+                                    <span style="color:var(--text-light);">Recommended Action:</span>
+                                    <p style="color:var(--text-dark);margin-top:4px;font-weight:bold;">${data.action}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <table style="width:100%;font-size:0.82rem;border-collapse:collapse;">
+                                <thead><tr><th style="text-align:left;padding:8px;background:var(--bg-light);">Loss Ratio</th><th style="padding:8px;background:var(--bg-light);">Action</th></tr></thead>
+                                <tbody>
+                                    <tr style="background:${lr < 0.6 ? 'var(--success-bg)' : ''}">
+                                        <td style="padding:8px;border-bottom:1px solid var(--border-light);">&lt; 0.6</td>
+                                        <td style="padding:8px;border-bottom:1px solid var(--border-light);">Normal — No action needed</td>
+                                    </tr>
+                                    <tr style="background:${lr >= 0.6 && lr <= 0.8 ? 'var(--warning-bg)' : ''}">
+                                        <td style="padding:8px;border-bottom:1px solid var(--border-light);">0.6 – 0.8</td>
+                                        <td style="padding:8px;border-bottom:1px solid var(--border-light);">Monitor closely</td>
+                                    </tr>
+                                    <tr style="background:${lr > 0.8 && lr <= 1.0 ? 'var(--danger-bg)' : ''}">
+                                        <td style="padding:8px;border-bottom:1px solid var(--border-light);">&gt; 0.8</td>
+                                        <td style="padding:8px;border-bottom:1px solid var(--border-light);">Increase premium</td>
+                                    </tr>
+                                    <tr style="background:${lr > 1.0 ? 'var(--danger-bg)' : ''}">
+                                        <td style="padding:8px;">&gt; 1.0</td>
+                                        <td style="padding:8px;">Stop new enrollments</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;">
+                                <button class="btn btn-primary btn-sm" onclick="toggleEnrollment()">Toggle Enrollment</button>
+                                <button class="btn btn-warning btn-sm" onclick="updatePremium()">Update Premium</button>
+                            </div>
+                        </div>
+                    </div>`;
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function loadCities() {
+            try {
+                const data = await apiGet('/api/admin/cities');
+                document.getElementById('cities-table').innerHTML = `
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>City</th><th>Tier</th><th>Rain Threshold</th><th>Temp Threshold</th><th>AQI Threshold</th>
+                                    <th>Current Rain</th><th>Current Temp</th><th>Current AQI</th><th>Claims</th><th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.cities.map(c => `
+                                    <tr id="city-row-${c.city}">
+                                        <td><strong>${c.city}</strong></td>
+                                        <td><span class="badge badge-${c.tier === 1 ? 'danger' : c.tier === 2 ? 'warning' : 'success'}">Tier ${c.tier}</span></td>
+                                        <td><input class="editable-input" id="${c.city}-rain" value="${c.rain_threshold}" type="number"></td>
+                                        <td><input class="editable-input" id="${c.city}-temp" value="${c.temp_threshold}" type="number"></td>
+                                        <td><input class="editable-input" id="${c.city}-aqi" value="${c.aqi_threshold}" type="number"></td>
+                                        <td>${c.current_rain} mm</td>
+                                        <td>${c.current_temp}°C</td>
+                                        <td>${c.current_aqi}</td>
+                                        <td>${c.claims_count}</td>
+                                        <td>
+                                            <select class="editable-input" id="${c.city}-tier" style="width:60px;">
+                                                <option value="1" ${c.tier === 1 ? 'selected' : ''}>T1</option>
+                                                <option value="2" ${c.tier === 2 ? 'selected' : ''}>T2</option>
+                                                <option value="3" ${c.tier === 3 ? 'selected' : ''}>T3</option>
+                                            </select>
+                                            <button class="btn btn-primary btn-sm" style="margin-top:4px;" onclick="updateCity('${c.city}')">Save</button>
+                                        </td>
+                                    </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function updateCity(city) {
+            try {
+                const tier = document.getElementById(`${city}-tier`).value;
+                const rain = document.getElementById(`${city}-rain`).value;
+                const temp = document.getElementById(`${city}-temp`).value;
+                const aqi = document.getElementById(`${city}-aqi`).value;
+                await apiPost('/api/admin/update-city', { city, tier: parseInt(tier), rain_threshold: parseFloat(rain), temp_threshold: parseFloat(temp), aqi_threshold: parseFloat(aqi) });
+                showToast(`${city} updated!`, 'success');
+                loadCities();
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function loadFraud() {
+            try {
+                const data = await apiGet('/api/admin/fraud');
+                document.getElementById('fraud-table').innerHTML = `
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Worker</th><th>City</th><th>Platform</th><th>Claims</th><th>Fraud Score</th><th>Status</th><th>Action</th></tr></thead>
+                            <tbody>
+                                ${data.workers.map(w => `
+                                    <tr>
+                                        <td><strong>${w.full_name}</strong></td>
+                                        <td>${w.city}</td>
+                                        <td>${w.platform || '—'}</td>
+                                        <td>${w.claims_count}</td>
+                                        <td>
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <div class="progress-bar" style="width:80px;height:6px;">
+                                                    <div class="fill ${w.fraud_score > 0.7 ? 'danger' : w.fraud_score > 0.5 ? 'warning' : 'success'}" style="width:${w.fraud_score * 100}%"></div>
+                                                </div>
+                                                <span style="font-size:0.8rem;font-weight:600;">${w.fraud_score.toFixed(2)}</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge badge-${w.fraud_status === 'Fraud' ? 'danger' : w.fraud_status === 'Suspicious' ? 'warning' : 'success'}">${w.fraud_status}</span></td>
+                                        <td>
+                                            ${w.fraud_status !== 'Safe' ? `<button class="btn btn-danger btn-sm" onclick="blockWorker('${w.id}')">🚫 Block</button>` : '—'}
+                                        </td>
+                                    </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function blockWorker(id) {
+            if (!confirm('Block this worker? This will cancel their active policy.')) return;
+            try {
+                await apiPost('/api/admin/block-worker', { worker_id: id });
+                showToast('Worker blocked', 'success');
+                loadFraud();
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function toggleEnrollment() {
+            try {
+                const data = await apiPost('/api/admin/toggle-enrollment', {});
+                showToast(`Enrollment ${data.enrollment_open ? 'opened' : 'closed'}`, 'success');
+                loadOverview();
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function updatePremium() {
+            const val = prompt('Enter new base premium (₹):', '30');
+            if (!val) return;
+            try {
+                await apiPost('/api/admin/update-premium', { premium: parseFloat(val) });
+                showToast('Premium updated', 'success');
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function simulateTrigger() {
+            const city = document.getElementById('sim-city').value;
+            const type = document.getElementById('sim-type').value;
+            const value = parseFloat(document.getElementById('sim-value').value);
+            const btn = document.getElementById('sim-btn');
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+            try {
+                const data = await apiPost('/api/admin/simulate-trigger', { city, trigger_type: type, value });
+                const resultDiv = document.getElementById('sim-result');
+                resultDiv.style.display = 'block';
+                if (data.triggered) {
+                    resultDiv.innerHTML = `<div style="padding:1rem;background:var(--danger-bg);border:1.5px solid var(--danger);border-radius:var(--radius);">
+                        <strong style="color:var(--danger);">🚨 TRIGGER ACTIVATED!</strong><br>
+                        <span style="font-size:0.88rem;">${data.claims_paid} claims automatically paid. New Loss Ratio: <strong>${data.loss_ratio}</strong></span>
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div style="padding:1rem;background:var(--success-bg);border:1.5px solid var(--success);border-radius:var(--radius);">
+                        <strong style="color:var(--success);">✅ Below Threshold</strong><br>
+                        <span style="font-size:0.88rem;">${data.message}</span>
+                    </div>`;
+                }
+                loadOverview();
+                loadLossRatio();
+            } catch (err) { showToast(err.message, 'error'); }
+            btn.textContent = '⚡ Simulate Trigger & Process Claims';
+            btn.disabled = false;
+        }
+
+        async function loadWorkers() {
+            try {
+                const data = await apiGet('/api/admin/workers');
+                document.getElementById('workers-table').innerHTML = `
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Name</th><th>City</th><th>Tier</th><th>Platform</th><th>Risk</th><th>Fraud Score</th><th>Active Policies</th><th>Claims</th><th>Registered</th></tr></thead>
+                            <tbody>
+                                ${data.workers.map(w => `
+                                    <tr>
+                                        <td><strong>${w.full_name}</strong><br><small style="color:var(--text-muted);">${w.email}</small></td>
+                                        <td>${w.city}</td>
+                                        <td><span class="badge badge-${w.city_tier === 1 ? 'danger' : w.city_tier === 2 ? 'warning' : 'success'}">Tier ${w.city_tier}</span></td>
+                                        <td>${w.platform || '—'}</td>
+                                        <td><span class="badge badge-${w.risk_level === 'High' ? 'danger' : w.risk_level === 'Medium' ? 'warning' : 'success'}">${w.risk_level}</span></td>
+                                        <td style="color:${w.fraud_score < 0.5 ? 'var(--success)' : w.fraud_score < 0.7 ? 'var(--warning)' : 'var(--danger)'};">${w.fraud_score.toFixed(2)}</td>
+                                        <td>${w.active_policies}</td>
+                                        <td>${w.total_claims}</td>
+                                        <td style="font-size:0.8rem;">${formatDate(w.created_at)}</td>
+                                    </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function loadWeather() { await apiGet('/api/weather'); }
+        async function loadAQI() { await apiGet('/api/aqi'); }
+        async function loadTriggerStatus() { await apiGet('/api/trigger-status'); }
+        async function loadRiskScore() { await apiGet('/api/ai/risk'); }
+        async function loadAdminStats() {
+            loadOverview();
+            loadLossRatio();
+            loadCities();
+            loadFraud();
+            loadWorkers();
+        }
+
+        async function refreshDashboard() {
+            const btn = document.getElementById('master-refresh-btn');
+            btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;margin-right:4px;"></div> Refreshing...';
+            btn.disabled = true;
+            try {
+                await Promise.all([
+                    loadWeather(),
+                    loadAQI(),
+                    loadTriggerStatus(),
+                    loadRiskScore(),
+                    apiGet('/api/admin/live-workers')
+                ]);
+                await loadAdminStats();
+                showToast('All APIs refreshed with latest logic', 'success');
+            } catch (err) {
+                showToast('Refresh encountered errors: ' + err.message, 'warning');
+                await loadAdminStats(); // load what we can
+            }
+            btn.innerHTML = '🔄 Refresh Dashboard';
+            btn.disabled = false;
+        }
+
+        // Load all
+        loadAdminStats();
+    </script>
+</body>
+
+</html>
