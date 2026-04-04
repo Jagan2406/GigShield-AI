@@ -13,8 +13,8 @@
         <button class="hamburger"><span></span><span></span><span></span></button>
         <div class="navbar-links" id="nav-right">
             <a href="/">Home</a>
-            <a href="/login">Login</a>
-            <a href="/register" class="btn btn-primary btn-sm active">Register</a>
+            <a href="/login.html">Login</a>
+            <a href="/register.html" class="btn btn-primary btn-sm active">Register</a>
         </div>
     </nav>
 
@@ -197,7 +197,7 @@
                     <div style="font-size:3rem;margin-bottom:1rem;">✅</div>
                     <h2>Verification Successful</h2>
                     <div id="vr-details" style="margin:1.5rem 0;"></div>
-                    <a href="/dashboard" class="btn btn-primary btn-lg">Go to Dashboard →</a>
+                    <a href="/dashboard.html" class="btn btn-primary btn-lg">Go to Dashboard →</a>
                 </div>
             </div>
         </div>
@@ -213,7 +213,7 @@
 
             try {
                 const formData = new FormData(e.target);
-                const res = await fetch('/api/register', { method: 'POST', body: formData });
+                const res = await fetch(API_BASE + '/api/register', { method: 'POST', body: formData });
                 const data = await res.json();
 
                 if (!res.ok) throw new Error(data.error);
