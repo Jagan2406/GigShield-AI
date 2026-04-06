@@ -15,7 +15,6 @@
             <a href="/buy-policy.html">Buy Policy</a>
             <a href="/trigger-monitor.html">Triggers</a>
             <a href="/claims.html">Claims</a>
-
             <a href="#" onclick="logout()">Logout</a>
         </div>
     </nav>
@@ -23,16 +22,15 @@
     <div class="dashboard-layout">
         <!-- Sidebar -->
         <aside class="sidebar">
-           <li><a href="/dashboard.html" class="active"><span class="menu-icon">🏠</span> Dashboard</a></li>
-            <li><a href="/buy-policy.html"><span class="menu-icon">🛡️</span> Buy Policy</a></li>
-            <li><a href="/active-policy.html"><span class="menu-icon">📋</span> Active Policy</a></li>
-            <li><a href="/trigger-monitor.html"><span class="menu-icon">📡</span> Trigger Monitor</a></li>
-            <li><a href="/claims.html"><span class="menu-icon">💰</span> Claims & Payout</a></li>
-            <li><a href="/activity.html"><span class="menu-icon">📍</span> Activity Tracker</a></li>
-            <li><a href="/location-tracker.html"><span class="menu-icon">📍</span> Location Tracker</a></li>
-            <li><a href="/terms.html"><span class="menu-icon">📄</span> Policy Terms</a></li>
-
-                <li><a href="/terms"><span class="menu-icon">📄</span> Policy Terms</a></li>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard.html" class="active"><span class="menu-icon">🏠</span> Dashboard</a></li>
+                <li><a href="/buy-policy.html"><span class="menu-icon">🛡️</span> Buy Policy</a></li>
+                <li><a href="/active-policy.html"><span class="menu-icon">📋</span> Active Policy</a></li>
+                <li><a href="/trigger-monitor.html"><span class="menu-icon">📡</span> Trigger Monitor</a></li>
+                <li><a href="/claims.html"><span class="menu-icon">💰</span> Claims & Payout</a></li>
+                <li><a href="/activity.html"><span class="menu-icon">📊</span> Activity Tracker</a></li>
+                <li><a href="/location-tracker.html"><span class="menu-icon">📍</span> Location Tracker</a></li>
+                <li><a href="/terms.html"><span class="menu-icon">📄</span> Policy Terms</a></li>
                 <li><a href="#" onclick="logout()" style="color:var(--danger)!important;"><span class="menu-icon">🚪</span> Logout</a></li>
             </ul>
         </aside>
@@ -93,14 +91,14 @@
 
             <!-- Action Buttons -->
             <div class="card mb-4">
-                <a href="/buy-policy.html" class="btn btn-primary">🛡️ Buy Policy</a>
-                <a href="/active-policy.html" class="btn btn-outline">📋 View Active Policy</a>
-                <a href="/claims.html" class="btn btn-outline">💰 View Claims</a>
-                <a href="/activity.html" class="btn btn-outline">📍 View Activity</a>
-                <a href="/active-policy.html#download" class="btn btn-outline">⬇️ Download Policy</a>
-
-                    <a href="/activity" class="btn btn-outline">📍 View Activity</a>
-                    <a href="/active-policy#download" class="btn btn-outline">⬇️ Download Policy</a>
+                <div class="card-header">⚡ Quick Actions</div>
+                <div class="card-body" style="display:flex;gap:1rem;flex-wrap:wrap;">
+                    <a href="/buy-policy.html" class="btn btn-primary">🛡️ Buy Policy</a>
+                    <a href="/active-policy.html" class="btn btn-outline">📋 View Active Policy</a>
+                    <a href="/claims.html" class="btn btn-outline">💰 View Claims</a>
+                    <a href="/activity.html" class="btn btn-outline">📊 View Activity</a>
+                    <a href="/location-tracker.html" class="btn btn-outline">📍 Location Tracker</a>
+                    <a href="/active-policy.html#download" class="btn btn-outline">⬇️ Download Policy</a>
                 </div>
             </div>
 
@@ -116,8 +114,8 @@
 
     <script src="/js/app.js"></script>
     <script>
-        if (!isLoggedIn()) window.location.href = '/login';
-        if (isAdmin()) window.location.href = '/admin';
+        if (!isLoggedIn()) window.location.href = '/login.html';
+        if (isAdmin()) window.location.href = '/admin.html';
 
         async function loadDashboard() {
             try {
