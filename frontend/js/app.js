@@ -12,7 +12,7 @@ function isAdmin() { return getUser()?.is_admin === true; }
 function logout() {
     localStorage.removeItem('gs_token');
     localStorage.removeItem('gs_user');
-    window.location.href = '/';
+    window.location.href = '/login.html';
 }
 
 // API call helper
